@@ -21,6 +21,9 @@ sources at the end.
 | Copper wire is usual on conifers, aluminium on deciduous trees | [Bonsai Learning Center: Wire](https://bonsailearningcenter.com/wire/), [Bonsai Tonight](https://bonsaitonight.com/?p=1528), [Bonsai Nut forum](https://mail.bonsainut.com/threads/aluminum-or-copper.62100) |
 | Bonsai soil (akadama, pumice, lava) drains fast; water when the top starts to dry | [Bonsai4me: Soils](https://bonsai4me.com/an-introduction-to-bonsai-soils/), [Bonsai Tonight: Water needs](https://bonsaitonight.com/2016/12/09/evaluate-water-needs/) |
 | Wire left on too long bites into the branch and scars it | [Bonsai Nut forum](https://bonsainut.com/threads/bonsai-wire.51655), [Fire Escape Bonsai: Wire scars](https://fireescapebonsai.substack.com/p/wire-scars) |
+| Wire is safest removed by cutting it off at each turn rather than pulling it, so the bark is not torn | [Bonsai Empire: Wiring](https://bonsaiempire.com/basics/styling/wiring) |
+| Jin (dead branches) and shari (stripped trunk) are made on conifers to show age, and look false on deciduous trees | [Wikipedia: Deadwood bonsai techniques](https://en.wikipedia.org/wiki/Deadwood_bonsai_techniques), [Bonsai Empire: Deadwood](https://bonsaiempire.com/basics/styling/deadwood) |
+| Guy wires to the pot and binding young roots to the rock are standard ways to shape trunks and root-over-rock trees | [Bonsai Empire: Wiring](https://bonsaiempire.com/basics/styling/wiring), [Swindon Bonsai](https://swindon-bonsai.co.uk/2012/05/20/trident-maple-over-rock/) |
 
 ## The eight trees
 

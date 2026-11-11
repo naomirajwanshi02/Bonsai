@@ -158,19 +158,30 @@ export function foliageTexture(kind, c1, c2){
       }
     }
   } else if (kind === 'juniper'){
-    // dense scale-leaf fronds: branching cords of tiny overlapping scales
-    const frond = (x, y, a, L, depth) => {
-      const steps = Math.round(L / 5);
+    // fine, feathery sprigs: thin forking stems packed with tiny needle-like leaves,
+    // the lacy look of a well-kept juniper
+    const sprig = (x, y, a, L, depth) => {
+      const steps = Math.round(L / 4);
       let px = x, py = y;
+      g.strokeStyle = '#5a4430'; g.lineWidth = Math.max(0.8, 2.2 - depth * 0.6);
+      g.beginPath(); g.moveTo(px, py);
+      const path = [];
       for (let i = 0; i < steps; i++){
-        px += Math.cos(a) * 5; py += Math.sin(a) * 5;
-        a += (r() - 0.5) * 0.25;
-        g.fillStyle = col(0.15 + r() * 0.5 + i / steps * 0.35);
-        g.beginPath(); g.ellipse(px, py, 4.4 * (1 - i / steps * 0.5), 3, a, 0, 6.283); g.fill();
-        if (depth < 2 && i > 2 && r() < 0.22) frond(px, py, a + (r() < 0.5 ? -1 : 1) * (0.5 + r() * 0.5), L * 0.5, depth + 1);
+        px += Math.cos(a) * 4; py += Math.sin(a) * 4;
+        a += (r() - 0.5) * 0.22;
+        g.lineTo(px, py); path.push([px, py, a, i / steps]);
+      }
+      g.stroke();
+      for (const [qx, qy, qa, t] of path){
+        for (const s of [-1, 1]){
+          const la = qa + s * (0.7 + r() * 0.35), ll = (7 + r() * 5) * (1 - t * 0.45);
+          g.strokeStyle = col(0.1 + r() * 0.55 + t * 0.35); g.lineWidth = 1.3 + r() * 0.7;
+          g.beginPath(); g.moveTo(qx, qy); g.lineTo(qx + Math.cos(la) * ll, qy + Math.sin(la) * ll); g.stroke();
+        }
+        if (depth < 2 && t > 0.15 && t < 0.8 && r() < 0.16) sprig(qx, qy, qa + (r() < 0.5 ? -1 : 1) * (0.45 + r() * 0.4), L * 0.55, depth + 1);
       }
     };
-    for (let i = 0; i < 9; i++) frond(128 + (r() - 0.5) * 30, 246, -Math.PI / 2 + (r() - 0.5) * 1.8, 120 + r() * 80, 0);
+    for (let i = 0; i < 7; i++) sprig(128 + (r() - 0.5) * 24, 250, -Math.PI / 2 + (r() - 0.5) * 1.7, 130 + r() * 80, 0);
   } else if (kind === 'blossom'){
     // ume blossom: round five-petal flowers and buds, a few on each card
     const flower = (x, y, R) => {

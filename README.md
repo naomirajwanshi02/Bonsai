@@ -28,8 +28,10 @@ Made for ages 8–14.
      45° like real bonsai wire: copper on the pines and juniper, aluminium on the broadleaf trees.
    - **Water.** Drag the copper watering can over the pot and hold it there. A gentle shower
      falls, the soil darkens and the tree fills out.
-   - **Unwire.** Tap the red buttons to take the wire off before it cuts into the bark. Each
-     tree comes undone its own way; the shape stays.
+   - **Unwire.** Every wire still on the tree glows. Tap its red button (marked **Tap**) and
+     that whole wire comes off: the button goes at once, then the wire unwinds, is snipped
+     off piece by piece, is untied from its hook, or the bands round the rock are cut. The
+     shape stays.
 7. **Finished.** Moss grows on the soil, the tree turns slowly and a card shows a fact.
    **Take a photo** saves the camera picture with your bonsai and a caption.
 
@@ -80,6 +82,14 @@ No 3D model files are downloaded: every tree is built in the browser (`js/tree.j
   and zelkova leaves, apricot blossom) around a dense darker core. Every spray takes the
   normal of the dome where it sits, so each pad shades like a rounded mass, with smooth
   anti-aliased edges.
+- **Pine needles:** the two pines grow real 3D needle tufts, brushes of single needles
+  fanning out from each shoot, instead of flat pictures. The other trees use sprays built
+  from three crossed layers, so they have volume from any side.
+- **Deadwood:** the juniper and Scots pine have shari (a bleached strip of bare wood
+  twisting up the trunk) and all three conifers carry jin (bare silver dead branches), as
+  growers create on old conifers. Broadleaf trees have none: on them it looks false.
+- **Moss and roots:** the soil is heaped into a mound that turns to moss when the tree is
+  finished, with nine surface roots spreading into it.
 - **Shadows:** the key light casts soft shadows. Branches shade the trunk, pads shade
   each other and the soil, and an invisible floor catches the tree’s shadow under the pot,
   so in AR it falls on your real table.
@@ -123,8 +133,8 @@ Then open `http://localhost:8125/?preview=1`. The camera needs https on a phone
 ## The Anatomy look
 
 The interface uses the [Anatomy](https://github.com/wheresryan22/anatomy) skill (MIT) in
-the sepia theme shared by Ramen_Builder, Noh_Masks and Pagoda: paper plates with Fig.
-labels, mono corner captions, Zen Maru Gothic and vermilion accents.
+the sepia theme shared by Ramen_Builder, Noh_Masks and Pagoda: paper plates, Zen Maru Gothic
+and vermilion accents (without the small corner captions, to keep the screen clear).
 
 Built with [MindAR](https://github.com/hiukim/mind-ar-js) 1.2.5 and
 [three.js](https://threejs.org) 0.160.0.

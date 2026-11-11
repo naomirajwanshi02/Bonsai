@@ -15,7 +15,8 @@ export const TREES = [
     fact: 'Its long, stiff needles grow in pairs, and as the tree gets old its dark bark becomes rough and deeply cracked.',
     look: { style: 'informal', foliage: 'pine', leaf: '#3f5a2c', leaf2: '#7f9a4e', bark: '#6b5444', bark2: '#3d2e24', barkKind: 'plates',
       pot: { shape: 'rect', w: 1.55, d: 0.98, h: 0.27, color: '#7a6a5d', glaze: false }, wire: 'copper', seed: 11,
-      wiring: { branches: "trace", coilOff: "unwind" } },
+      wiring: { branches: "trace", coilOff: "unwind" },
+      deadwood: { jin: [{ u: 0.8, az: 125, el: 38, len: 0.26 }] } },
   },
   {
     id: 'juniper', name: 'Chinese Juniper', latin: 'Juniperus chinensis', style: 'Cascade',
@@ -24,7 +25,8 @@ export const TREES = [
     fact: 'A cascade tree needs a tall pot, so its long hanging trunk does not touch the table.',
     look: { style: 'cascade', foliage: 'juniper', leaf: '#3e6640', leaf2: '#86a85e', bark: '#8a5a3c', bark2: '#4a2e1e', barkKind: 'strings',
       pot: { shape: 'tall', w: 0.62, d: 0.62, h: 0.9, color: '#5e4a3c', glaze: false }, wire: 'copper', seed: 23,
-      wiring: { trunk: "circle+pull", coilOff: "snip" } },
+      wiring: { trunk: "circle+pull", coilOff: "snip" },
+      deadwood: { shari: { from: 0.02, to: 0.78, width: 0.3, angle: 15, twist: 0.9 }, jin: [{ u: 0.3, az: 60, el: 30, len: 0.36 }, { u: 0.55, az: 160, el: 10, len: 0.3 }] } },
   },
   {
     id: 'cedar', name: 'Japanese Cedar', latin: 'Cryptomeria japonica', style: 'Formal Upright',
@@ -67,9 +69,10 @@ export const TREES = [
     blurb: 'A pine from Europe and Asia. High up its trunk the bark turns a warm orange.',
     styleLine: 'Literati: a tall, thin, twisting trunk with only a few branches near the top.',
     fact: 'The literati style is named after Chinese scholars who painted and wrote poems about lonely, windswept trees.',
-    look: { style: 'literati', foliage: 'scots', leaf: '#4c6b4a', leaf2: '#93ad7c', bark: '#b06a3e', bark2: '#5e3a26', barkKind: 'plates',
+    look: { style: 'literati', foliage: 'scots', leaf: '#4c6b4a', leaf2: '#93ad7c', bark: '#6e5646', bark2: '#5e3a26', barkKind: 'plates',
       pot: { shape: 'round', w: 0.62, d: 0.62, h: 0.2, color: '#8a6c55', glaze: false }, wire: 'copper', seed: 79,
-      wiring: { trunk: "circle", branches: "pull", coilOff: "snip" } },
+      wiring: { trunk: "circle", branches: "pull", coilOff: "snip" },
+      deadwood: { shari: { from: 0.04, to: 0.55, width: 0.22, angle: -20, twist: 0.6 }, jin: [{ u: 0.68, az: 25, el: 28, len: 0.3 }, { u: 0.45, az: 200, el: 20, len: 0.22 }] } },
   },
   {
     id: 'apricot', name: 'Japanese Apricot', latin: 'Prunus mume', style: 'Twin Trunk',
@@ -86,13 +89,13 @@ export const BY_ID = Object.fromEntries(TREES.map((t, i) => [t.id, { ...t, n: i 
 
 // The four steps, in order. Copy is short: it shows on a phone over the camera.
 export const STEPS = [
-  { id: 'prune', name: 'Prune', hint: 'Tap each pair of <b>scissors</b> to cut the extra branches',
+  { id: 'prune', name: 'Prune', hint: '<b>Tap</b> each pair of scissors to cut off the extra branches',
     done: 'Pruned! Only the best branches are left.',
     why: 'Pruning removes branches that grow too low, straight up, toward you, or at the same height as another.' },
   { id: 'wire', name: 'Wire', hint: 'Follow the guide on the tree to wire it into shape',
     done: 'Wired! The branches are bent into place.',
     why: 'Wire holds a branch in its new shape while it grows. Growers use copper on pines and aluminium on maples.' },
-  { id: 'water', name: 'Water', hint: 'Drag the <b>watering can</b> over the pot and hold it there to water',
+  { id: 'water', name: 'Water', hint: '<b>Drag</b> the watering can over the pot and <b>hold</b> it there to water',
     done: 'Watered! Look how the tree has grown.',
     why: 'Bonsai soil drains fast, so it is watered whenever the top starts to dry.' },
   { id: 'unwire', name: 'Unwire', hint: 'Tap the red markers to take the wire off before it cuts into the bark',

@@ -216,6 +216,37 @@ function helixPoints(curve, radius, { from = 0, to = 0.92, pitch = 1, n = 140, p
   return pts;
 }
 
+// A pine shoot's tuft: a brush of long, thin needles fanning up and out from one point,
+// darker at the base and lighter at the tips. Built as real triangles, so it has depth.
+function needleTuft(c1, c2, r, long = 1){
+  const A = new THREE.Color(c1), B = new THREE.Color(c2), base = A.clone().multiplyScalar(0.55), stem = new THREE.Color('#5b4330');
+  const pos = [], nor = [], col = [];
+  const up = V(0, 1, 0), side = new THREE.Vector3(), n = new THREE.Vector3();
+  const push = (p, c, nn) => { pos.push(p.x, p.y, p.z); col.push(c.r, c.g, c.b); nor.push(nn.x, nn.y, nn.z); };
+  // the short woody shoot the needles grow from
+  for (const [a, b] of [[V(-0.02, 0, 0), V(0.02, 0, 0)], [V(0, 0, -0.02), V(0, 0, 0.02)]]){
+    const t = V(0, 0.32, 0);
+    push(a, stem, up); push(b, stem, up); push(t, stem, up);
+  }
+  for (let i = 0; i < 46; i++){
+    const polar = Math.min(1.75, Math.acos(1 - r() * 1.25) * 1.05), az = r() * Math.PI * 2;
+    const d = V(Math.sin(polar) * Math.cos(az), Math.cos(polar), Math.sin(polar) * Math.sin(az));
+    const L = (0.7 + r() * 0.35) * long;
+    const o = V(0, 0.08 + r() * 0.22, 0);
+    side.crossVectors(d, Math.abs(d.y) > 0.9 ? V(1, 0, 0) : up).normalize().multiplyScalar(0.016);
+    const tip = o.clone().addScaledVector(d, L);
+    tip.y -= 0.07 * L * Math.sin(polar);
+    n.copy(d).multiplyScalar(0.4).add(V(0, 0.9, 0)).normalize();
+    const tc = A.clone().lerp(B, 0.1 + r() * 0.55);
+    push(o.clone().sub(side), base, n); push(o.clone().add(side), base, n); push(tip, tc, n);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  return g;
+}
+
 // ------------------------------------------------------------------ pot
 function potShape(pot, inset = 0){
   const w = pot.w / 2 - inset, d = pot.d / 2 - inset;
@@ -263,14 +294,27 @@ function buildPot(pot, mats){
     : [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([x, z]) => [x * pot.w * 0.36, z * pot.d * 0.32]);
   for (const [x, z] of feet){ const f = new THREE.Mesh(foot, mats.potDark); f.position.set(x, -pot.h - 0.02, z); g.add(f); }
   // soil
-  const soilGeo = new THREE.ShapeGeometry(potShape(pot, 0.045), 48);
+  // soil: a gently domed mound, as growers heap it, highest round the trunk
+  const sa = pot.w / 2 - 0.045, sb = pot.d / 2 - 0.045;
+  const round = pot.shape === 'oval' || pot.shape === 'round';
+  const soilGeo = round ? new THREE.RingGeometry(0.001, 1, 56, 10) : new THREE.PlaneGeometry(2, 2, 24, 16);
   soilGeo.rotateX(-Math.PI / 2);
-  const uv = soilGeo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 1.6, uv.getY(i) * 1.6);
+  const domeY = (x, z) => { const rho = round ? Math.hypot(x / sa, z / sb) : Math.max(Math.abs(x) / sa, Math.abs(z) / sb); return 0.055 * Math.max(0, 1 - rho * rho); };
+  {
+    const a = soilGeo.attributes.position;
+    for (let i = 0; i < a.count; i++){
+      let x = a.getX(i) * sa, z = a.getZ(i) * sb;
+      if (!round){ const rr = Math.min(sa, sb) * 0.12, ax = Math.abs(x), az = Math.abs(z); if (ax > sa - rr && az > sb - rr){ const cx = sa - rr, cz = sb - rr, d = Math.hypot(ax - cx, az - cz); if (d > rr){ x = Math.sign(x) * (cx + (ax - cx) * rr / d); z = Math.sign(z) * (cz + (az - cz) * rr / d); } } }
+      a.setXYZ(i, x, domeY(x, z), z);
+    }
+    soilGeo.computeVertexNormals();
+  }
+  const uv = soilGeo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 3.2, uv.getY(i) * 3.2);
   const soil = new THREE.Mesh(soilGeo, mats.soil);
   soil.position.y = 0.012;
   soil.name = 'soil';
   g.add(soil);
-  return { group: g, inner: potShape(pot, 0.06) };
+  return { group: g, inner: potShape(pot, 0.06), domeY };
 }
 
 // ------------------------------------------------------------------ build
@@ -284,9 +328,14 @@ export function buildTree(def){
   // materials
   const barkMap = barkTexture(L.barkKind);
   const bark = new THREE.MeshStandardMaterial({ color: L.bark, map: barkMap, bumpMap: barkMap, bumpScale: 2.2, roughness: 0.92 });
+  const barkTrunk = new THREE.MeshStandardMaterial({ color: '#ffffff', vertexColors: true, map: barkMap, bumpMap: barkMap, bumpScale: 2.4, roughness: 0.9 });
+  // deadwood (jin and shari): bark stripped, bleached silver-white by sun and lime sulfur
+  const deadMap = barkTexture('strings');
+  const bone = new THREE.MeshStandardMaterial({ color: '#e4ddd0', map: deadMap, bumpMap: deadMap, bumpScale: 1.6, roughness: 0.75 });
+  const DW = L.deadwood || {};
   const potColor = new THREE.Color(L.pot.color);
   const mats = {
-    bark,
+    bark, barkTrunk, bone,
     pot: new THREE.MeshStandardMaterial({ color: potColor, roughness: L.pot.glaze ? 0.28 : 0.86, metalness: 0 }),
     potDark: new THREE.MeshStandardMaterial({ color: potColor.clone().multiplyScalar(0.72), roughness: L.pot.glaze ? 0.3 : 0.9 }),
     soil: new THREE.MeshStandardMaterial({ map: soilTexture(), roughness: 1, color: '#ffffff' }),
@@ -296,7 +345,7 @@ export function buildTree(def){
   };
   // the trunk of Scots pine turns orange higher up: lighten the bark map toward the top
   const leafTex = foliageTexture(L.foliage, L.leaf, L.leaf2);
-  const leafMat = new THREE.MeshStandardMaterial({ map: leafTex, alphaTest: 0.42, alphaToCoverage: true, side: THREE.DoubleSide, roughness: 0.85 });
+  const leafMat = new THREE.MeshStandardMaterial({ map: leafTex, alphaTest: 0.42, alphaToCoverage: true, side: THREE.DoubleSide, roughness: 0.85, color: L.foliage === 'blossom' ? '#ffffff' : '#cfd6c8' });
   leafMat.onBeforeCompile = (sh) => {
     // light each foliage pad as one rounded mass: every spray takes the normal of the
     // pad's surface where it sits (aOut), so pads shade like domes, with no dark back faces
@@ -337,26 +386,62 @@ export function buildTree(def){
     const ridge = Array.from({ length: radial }, () => (r() - 0.5) * 0.16);
     const sm = ridge.map((v, j) => (ridge[(j + radial - 1) % radial] + 2 * v + ridge[(j + 1) % radial]) / 4);
     const noise = [];
-    for (let i = 0; i <= seg; i++) for (let j = 0; j < radial; j++) noise.push(sm[j] * (1 - 0.6 * i / seg) + (r() - 0.5) * 0.035);
+    // knobs and swellings along the trunk, leaning to one side then the other, as on an old tree
+    const ph1 = r() * 6, ph2 = r() * 6, ph3 = r() * 6;
+    for (let i = 0; i <= seg; i++) for (let j = 0; j < radial; j++){
+      const a = (j / radial) * Math.PI * 2;
+      const knob = 0.09 * Math.sin(i * 0.33 + ph1) * Math.max(0, Math.cos(a - ph3 - i * 0.05)) + 0.05 * Math.sin(i * 0.17 + ph2);
+      noise.push(sm[j] * (1 - 0.6 * i / seg) + knob + (r() - 0.5) * 0.035);
+    }
     const fin = curveOf(T.fin), raw = curveOf(T.raw || T.fin);
     const radius = (u) => T.r1 + (T.r0 - T.r1) * Math.pow(1 - u, 1.25) + T.r0 * 0.55 * Math.exp(-u * 16);
     const dF = tubeData(fin, seg, radial, radius, noise, { cap: T.cap ?? true });
+    const dR = T.raw ? tubeData(raw, seg, radial, radius, noise, { cap: T.cap ?? true }) : null;
+    // colour every vertex: living bark, or a bleached strip of shari twisting up the trunk
+    const sh = ti === 0 ? DW.shari : null;
+    const live = new THREE.Color(L.bark), dead = new THREE.Color('#fbf6ec'), tmpC = new THREE.Color();
+    const cols = [];
+    for (let v = 0; v < dF.pos.length / 3; v++){
+      const i = Math.min(seg, Math.floor(v / (radial + 1))), u = i / seg;
+      let k = 0;
+      if (sh && v < (seg + 1) * (radial + 1) && u >= sh.from && u <= sh.to){
+        const nx = dF.nor[v * 3], nz = dF.nor[v * 3 + 2];
+        const phi = Math.atan2(nx, nz), centre = sh.angle * D + (u - sh.from) * sh.twist * Math.PI * 2;
+        let dphi = phi - centre; dphi = Math.atan2(Math.sin(dphi), Math.cos(dphi));
+        const ends = Math.min(1, (u - sh.from) / 0.08, (sh.to - u) / 0.12);
+        const half = sh.width * Math.PI * Math.max(0, ends) * (0.8 + 0.2 * Math.sin(u * 23));
+        k = THREE.MathUtils.smoothstep(half - Math.abs(dphi), -0.05, 0.12);
+        if (k > 0){
+          // stripped wood sits a little below the bark
+          const s = 1 - 0.05 * k;
+          for (const d of dR ? [dF, dR] : [dF]){ d.pos[v * 3] = d.pos[v * 3] - d.nor[v * 3] * radius(u) * 0.05 * k; d.pos[v * 3 + 1] -= d.nor[v * 3 + 1] * radius(u) * 0.05 * k; d.pos[v * 3 + 2] -= d.nor[v * 3 + 2] * radius(u) * 0.05 * k; }
+          void s;
+        }
+      }
+      // Scots pine bark turns orange higher up the trunk
+      tmpC.copy(live);
+      if (L.style === 'literati') tmpC.lerp(new THREE.Color('#c8743e'), THREE.MathUtils.smoothstep(u, 0.35, 0.8) * 0.8);
+      tmpC.multiplyScalar(0.85 + 0.15 * Math.sin(u * 40 + v));
+      tmpC.lerp(dead, k);
+      cols.push(tmpC.r, tmpC.g, tmpC.b);
+    }
     const geo = geoOf(dF);
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
     if (T.raw){
-      const dR = tubeData(raw, seg, radial, radius, noise, { cap: T.cap ?? true });
       geo.morphAttributes.position = [new THREE.Float32BufferAttribute(dR.pos, 3)];
       geo.morphAttributes.normal = [new THREE.Float32BufferAttribute(dR.nor, 3)];
     }
-    const mesh = new THREE.Mesh(geo, bark);
+    const mesh = new THREE.Mesh(geo, barkTrunk);
     if (T.raw) mesh.morphTargetInfluences = [1];
     root.add(mesh);
     // surface roots (nebari) spreading from the base into the soil
     if (!spec.rock){
-      const n = 6, base = T.fin[0];
+      const n = 9, base = T.fin[0];
       for (let k = 0; k < n; k++){
-        const a = (k / n) * Math.PI * 2 + r() * 0.5, R = T.r0 * (2.4 + r() * 1.2);
-        const c = curveOf([V(base.x, 0.12, base.z), V(base.x + Math.cos(a) * T.r0 * 0.9, 0.04, base.z + Math.sin(a) * T.r0 * 0.9), V(base.x + Math.cos(a) * R, -0.012, base.z + Math.sin(a) * R)]);
-        const m = new THREE.Mesh(geoOf(tubeData(c, 10, 8, (u) => T.r0 * (0.5 - u * 0.4), null, { cap: true })), bark);
+        const a = (k / n) * Math.PI * 2 + r() * 0.45, R = T.r0 * (2.6 + r() * 1.8), w = (r() - 0.5) * 0.7;
+        const at = (f, y) => V(base.x + Math.cos(a + w * f) * R * f, y, base.z + Math.sin(a + w * f) * R * f);
+        const c = curveOf([V(base.x, 0.16, base.z), at(0.3, 0.075), at(0.65, 0.05), at(1, 0.01)]);
+        const m = new THREE.Mesh(geoOf(tubeData(c, 14, 8, (u) => T.r0 * (0.58 - u * 0.5) * (k % 3 ? 0.8 : 1), null, { cap: true })), bark);
         root.add(m);
       }
     }
@@ -385,10 +470,28 @@ export function buildTree(def){
     return out.copy(a).lerp(b, T.bend);
   };
 
+  // jin: dead branches stripped of bark, kept as bleached silver stubs (conifers only)
+  const jins = (DW.jin || []).map((J) => {
+    const group = new THREE.Group();
+    group.rotation.order = 'YZX';
+    const L2 = J.len, s = r() < 0.5 ? -1 : 1;
+    const c = curveOf(P([[-0.02, 0, 0], [L2 * 0.35, 0.03 * s, 0.05 * L2], [L2 * 0.7, -0.04 * s, -0.04 * L2], [L2, 0.06, 0.02 * s]]));
+    const r0 = Math.min(trunks[0].radius(J.u) * 0.42, 0.045);
+    const parts = [geoOf(tubeData(c, 14, 8, (u) => r0 * (1 - u * 0.88), null, { cap: true }))];
+    // a forked tip, as weathered jin often has
+    const p = c.getPointAt(0.68), end = p.clone().add(V(L2 * 0.28, 0.07, 0.05 * s));
+    parts.push(geoOf(tubeData(curveOf([p, p.clone().lerp(end, 0.5).add(V(0, 0.02, 0)), end]), 6, 6, (u) => r0 * 0.4 * (1 - u * 0.85), null, { cap: true })));
+    const mesh = new THREE.Mesh(mergeGeometries(parts), bone);
+    parts.forEach((g) => g.dispose());
+    group.add(mesh);
+    root.add(group);
+    return { group, J };
+  });
+
   // pads: flat clouds of foliage cards
   const tuft = ['pine', 'scots', 'cedar', 'juniper'].includes(L.foliage);
-  const density = { pine: 9, scots: 8, cedar: 10, juniper: 12, palmate: 6, trident: 6.5, zelkova: 7, blossom: 5.5 }[L.foliage];
-  const cardSize = { pine: 0.21, scots: 0.19, cedar: 0.2, juniper: 0.17, palmate: 0.2, trident: 0.19, zelkova: 0.17, blossom: 0.2 }[L.foliage];
+  const density = { pine: 6, scots: 5.5, cedar: 8, juniper: 9.5, palmate: 6, trident: 6.5, zelkova: 7, blossom: 5.5 }[L.foliage];
+  const cardSize = { pine: 0.23, scots: 0.2, cedar: 0.2, juniper: 0.17, palmate: 0.2, trident: 0.19, zelkova: 0.17, blossom: 0.2 }[L.foliage];
   const pads = [];
   const q = new THREE.Quaternion(), e = new THREE.Euler(), s3 = new THREE.Vector3();
   function makePad(host, local, R, H, { trim = false, extra = false } = {}){
@@ -404,8 +507,8 @@ export function buildTree(def){
       const sc = cardSize * (0.75 + r() * 0.5);
       const m = new THREE.Matrix4().compose(V(x, y, z), q.clone(), s3.set(sc, sc, sc));
       // outward normal of the pad dome at this spot, and a little occlusion deep inside it
-      const out = V(x / R, (y / H) * 1.4 + 0.45, z / R).normalize();
-      const shade = THREE.MathUtils.clamp(0.5 + 0.22 * ((y / H) + 0.3) + 0.3 * d + (r() - 0.5) * 0.14, 0.42, 1.05);
+      const out = V(x / R, (y / H) * 1.1 + 0.25, z / R).normalize();
+      const shade = THREE.MathUtils.clamp(0.4 + 0.2 * ((y / H) + 0.3) + 0.26 * d + (r() - 0.5) * 0.16, 0.32, 0.9);
       cards.push({ m, th: r(), shade, out });
     }
     const pad = { host, local: local.clone(), R, H, cards, trim, extra, gone: false, fall: null, base: 1 };
@@ -472,8 +575,17 @@ export function buildTree(def){
   makePad({ trunk: 0, u: 1 }, V(0.02, 0.24, 0), 0.13, 0.14, { trim: true });
 
   // foliage: one instanced mesh for every card on the tree
-  const cardGeo = new THREE.PlaneGeometry(1, 1);
-  if (tuft) cardGeo.translate(0, 0.42, 0);
+  // Pines get real 3D needle tufts: a brush of single needles fanning out from each shoot.
+  // Every other tree gets sprays built from three crossed layers, so they have volume from
+  // any side instead of looking like flat cards.
+  const needles = L.foliage === 'pine' || L.foliage === 'scots';
+  let cardGeo;
+  if (needles) cardGeo = needleTuft(L.leaf, L.leaf2, rng(L.seed + 3), L.foliage === 'pine' ? 1 : 0.8);
+  else {
+    const layers = [0, 1, 2].map((k) => { const p = new THREE.PlaneGeometry(1, 1); if (tuft) p.translate(0, 0.42, 0); p.rotateY((k * Math.PI) / 3); return p; });
+    cardGeo = mergeGeometries(layers);
+    layers.forEach((p) => p.dispose());
+  }
   const total = pads.reduce((n, p) => n + p.cards.length, 0);
   {
     const outs = new Float32Array(total * 3);
@@ -481,10 +593,12 @@ export function buildTree(def){
     for (const p of pads) for (const c of p.cards){ outs.set([c.out.x, c.out.y, c.out.z], k * 3); k++; }
     cardGeo.setAttribute('aOut', new THREE.InstancedBufferAttribute(outs, 3));
   }
-  const foliage = new THREE.InstancedMesh(cardGeo, leafMat, total);
+  const needleMat = needles ? new THREE.MeshStandardMaterial({ vertexColors: true, side: THREE.DoubleSide, roughness: 0.7 }) : null;
+  if (needleMat) needleMat.onBeforeCompile = leafMat.onBeforeCompile;
+  const foliage = new THREE.InstancedMesh(cardGeo, needleMat || leafMat, total);
   foliage.frustumCulled = false;
   foliage.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  foliage.customDepthMaterial = leafDepth;
+  if (!needles) foliage.customDepthMaterial = leafDepth;
   foliage.castShadow = true;
   foliage.receiveShadow = true;
   {
@@ -626,12 +740,12 @@ export function buildTree(def){
   {
     const shape = pot.inner, pts = shape.getPoints(64), box = new THREE.Box2().setFromPoints(pts);
     const inside = (x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++){ if ((pts[i].y > y) !== (pts[j].y > y) && x < (pts[j].x - pts[i].x) * (y - pts[i].y) / (pts[j].y - pts[i].y) + pts[i].x) c = !c; } return c; };
-    for (let i = 0, tries = 0; i < 26 && tries < 400; tries++){
+    for (let i = 0, tries = 0; i < 70 && tries < 900; tries++){
       const x = lerp(box.min.x, box.max.x, r()), y = lerp(box.min.y, box.max.y, r());
       if (!inside(x, y)) continue;
       const m = new THREE.Mesh(mossGeo, mossMat);
-      const s = 0.14 + r() * 0.18;
-      m.position.set(x, 0.016 + i * 0.0004, -y);
+      const s = 0.12 + r() * 0.16;
+      m.position.set(x, pot.domeY(x, -y) + 0.016 + i * 0.0002, -y);
       m.scale.set(s, 1, s * (0.7 + r() * 0.4));
       m.rotation.y = r() * 6;
       moss.add(m); i++;
@@ -660,6 +774,7 @@ export function buildTree(def){
       trunkPoint(b.t, b.u, b.group.position);
       b.group.rotation.set(0, lerp(b.azRaw, b.az, b.bend) * D, lerp(b.elRaw, b.el, b.bend) * D);
     }
+    for (const j of jins){ trunkPoint(0, j.J.u, j.group.position); j.group.rotation.set(0, j.J.az * D, j.J.el * D); }
     // guy wires run from the part's tip to their hook on the pot
     for (const W of wireTargets){
       const G = W.guy;
@@ -857,7 +972,7 @@ export function buildTree(def){
     root.traverse((o) => { if (o.geometry && o.geometry !== mossGeo) o.geometry.dispose(); });
     mossGeo.dispose(); cardGeo.dispose();
     Object.values(mats).forEach((m) => m.dispose());
-    leafMat.dispose(); mossMat.dispose();
+    leafMat.dispose(); mossMat.dispose(); needleMat?.dispose();
     rockMesh?.material.dispose();
     leafDepth.dispose();
     if (cores){ cores.geometry.dispose(); cores.material.dispose(); }

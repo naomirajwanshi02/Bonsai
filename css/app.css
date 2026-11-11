@@ -246,3 +246,18 @@ body.finished #hudBottom{display:none}
 /* leave the game? */
 #exit .welcome h1{font-size:clamp(24px,7vw,30px)}
 #exit .row{flex-direction:column;align-items:stretch}
+
+/* no small corner captions: the plates carry only what a player needs */
+.plate .corner,.tcard .num{display:none}
+.namecard{padding:10px 12px 10px}
+.stepbar{padding:10px 10px 10px}
+.finishcard{padding:14px 14px 12px}
+.welcome{padding:22px 20px 22px}
+.pickcard{padding:18px 12px 14px}
+.photocard{padding:12px}
+.tcard{padding-top:10px}
+
+/* every tap target says so */
+.mark.cut::after,.mark.off::after{content:'Tap';position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:7px;
+  padding:2px 8px;border-radius:99px;background:rgba(28,18,10,.72);color:#fff8ec;font:800 11px/1.3 var(--ui);letter-spacing:.04em;white-space:nowrap}
+.mark.cut,.mark.off{position:absolute}

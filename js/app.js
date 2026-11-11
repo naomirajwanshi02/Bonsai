@@ -163,19 +163,19 @@ Stage.on({
 // growers choose it on purpose: copper for the conifers, aluminium for the broadleaf trees.
 function wireHint(W, phase){
   const metal = S.tree?.look.wire === 'copper' ? 'copper' : 'aluminium';
-  if (W.kind === 'tie') return 'Circle your finger round the <b>rock</b> to tie the roots down with wire';
-  if (phase === 'trace') return `Drag along the <b>dotted line</b> to coil ${metal} wire round <b>${W.name}</b>`;
-  if (phase === 'tap') return `Tap <b>${W.name}</b> to coil ${metal} wire round it`;
-  if (phase === 'circle') return `Circle your finger round <b>${W.name}</b> to wind ${metal} wire on`;
-  if (W.guy) return `Pull the <b>red dot</b> into the ring: a guy wire to the pot will hold ${W.name} there`;
-  if (W.kind === 'trunk' && S.tree?.style === 'Cascade') return 'Now pull the <b>red dot</b> down into the ring to bend the trunk over the edge';
-  return `Now pull the <b>red dot</b> into the ring to bend ${W.name} into shape`;
+  if (W.kind === 'tie') return '<b>Circle</b> your finger round the rock to tie the roots down with wire';
+  if (phase === 'trace') return `<b>Drag</b> your finger along the dotted line to coil ${metal} wire round <b>${W.name}</b>`;
+  if (phase === 'tap') return `<b>Tap</b> ${W.name} (the red dot) to coil ${metal} wire round it`;
+  if (phase === 'circle') return `<b>Circle</b> your finger round <b>${W.name}</b> to wind ${metal} wire on`;
+  if (W.guy) return `<b>Drag</b> the red dot into the ring: a guy wire to the pot will hold ${W.name} there`;
+  if (W.kind === 'trunk' && S.tree?.style === 'Cascade') return 'Now <b>drag</b> the red dot down into the ring to bend the trunk over the edge';
+  return `Now <b>drag</b> the red dot into the ring to bend ${W.name} into shape`;
 }
 const UNWIRE_HINT = {
-  unwind: 'Tap the <b>red button</b> on each wire and it spins off',
-  snip: 'Tap the <b>cutters</b> to snip the wire off, a piece at a time',
-  release: 'Tap the <b>hook</b> on the pot to untie each guy wire',
-  cut: 'Tap the <b>scissors</b> to cut each band of wire round the rock',
+  unwind: '<b>Tap</b> the red button on a glowing wire. It unwinds off the branch',
+  snip: '<b>Tap</b> the cutters on a glowing wire. They snip it off piece by piece, so the bark is not torn',
+  release: '<b>Tap</b> the red button on the hook. The glowing guy wire is untied',
+  cut: '<b>Tap</b> the scissors on the rock. The glowing bands are cut off, now the roots hold on by themselves',
 };
 
 // ------------------------------------------------------------ 6 · finished

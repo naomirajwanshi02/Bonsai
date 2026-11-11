@@ -502,39 +502,41 @@ function markWorld(W, out){
 }
 function unwireTap(p){
   const U = R.unwire, T = R.tree;
-  if (!U || U.busy) return;
-  let best = null, bd = 50;
+  if (!U) return;
+  let best = null, bd = 56;
   for (const W of U.left){
+    if (W.going) continue;
     const at = markWorld(W, v3b);
     if (!at) continue;
     const s = toScreen(at), d = Math.hypot(p.x - s.x, p.y - s.y);
     if (d < bd){ bd = d; best = W; }
   }
   if (!best) return;
+  // one tap takes the whole wire off: the cue goes at once, then the wire comes away
+  best.going = true;
+  best.markEl?.classList.add('gone');
   buzz(20);
   const done = () => {
     U.left.splice(U.left.indexOf(best), 1);
-    best.markEl?.classList.add('gone');
     const n = T.wireTargets.length;
     emit('progress', n - U.left.length, n);
     if (!U.left.length) emit('stepDone', 'unwire');
-    else emit('unwireTarget', U.left[0]);
+    else emit('unwireTarget', U.left.find((W) => !W.going) || U.left[0]);
   };
   if (best.unwire === 'unwind'){
-    U.busy = true;
-    best.markEl?.classList.add('gone');
-    tw(0.75, EASE.io, (k) => T.setWire(best, 1 - k), () => { U.busy = false; done(); });
+    tw(0.8, EASE.io, (k) => T.setWire(best, 1 - k), done);
   } else if (best.unwire === 'snip'){
-    const r = T.snip(best);
-    if (r.at) spawnBits(r.at, best);
-    if (r.done) done();
+    // the cutters work down the coil from the tip, a piece at a time
+    const step = () => { const r = T.snip(best); if (r.at) spawnBits(r.at, best); if (r.done) done(); else after(0.3, step); };
+    step();
   } else if (best.unwire === 'release'){
     T.releaseGuy(best);
     spawnBits(T.hookWorld(best, new THREE.Vector3()), best);
-    done();
+    after(0.5, done);
   } else if (best.unwire === 'cut'){
-    const all = T.cutTie(best);
-    if (all) done();
+    // every band round the rock is cut, one after another
+    const step = () => { const at = T.tieWorld(best, new THREE.Vector3()); if (at) spawnBits(at, best); if (T.cutTie(best)) after(0.4, done); else after(0.3, step); };
+    step();
   }
 }
 // little pieces of wire that drop away when it is cut or untied
@@ -648,6 +650,29 @@ function drawFx(now){
       g.beginPath(); g.moveTo(e.x + Math.cos(ang) * 12, e.y + Math.sin(ang) * 12);
       g.lineTo(e.x + Math.cos(ang + 2.5) * 11, e.y + Math.sin(ang + 2.5) * 11);
       g.lineTo(e.x + Math.cos(ang - 2.5) * 11, e.y + Math.sin(ang - 2.5) * 11); g.closePath(); g.fill(); g.stroke();
+    }
+  }
+  // unwiring: every wire still on the tree glows, so it is clear what has to come off
+  if (R.mode === 'unwire' && R.unwire){
+    const T = R.tree, pulse = 0.5 + 0.5 * Math.sin(now / 260);
+    const glow = (pts, closed) => {
+      if (pts.length < 2) return;
+      for (const [w, col] of [[13, `rgba(255,214,140,${0.25 + 0.3 * pulse})`], [3, 'rgba(255,248,236,.9)']]){
+        g.strokeStyle = col; g.lineWidth = w;
+        g.beginPath(); pts.forEach((q, i) => (i ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y))); if (closed) g.closePath(); g.stroke();
+      }
+    };
+    for (const W of R.unwire.left){
+      if (W.going) continue;
+      if (W.guy) glow([toScreen(T.tipWorld(W, T.bendOf(W), v3b)), toScreen(T.hookWorld(W, v3b))]);
+      else if (W.ties){
+        for (const tie of W.ties){
+          if (tie.cut) continue;
+          const pts = [];
+          for (let i = 0; i < 32; i++){ const a = (i / 32) * Math.PI * 2; pts.push(toScreen(v3b.set(Math.cos(a) * tie.rx, tie.y, Math.sin(a) * tie.rx * 0.92).applyMatrix4(T.root.matrixWorld))); }
+          glow(pts, true);
+        }
+      } else if (W.wire && W.wire.progress > 0.02) glow(T.targetPath(W, 20).slice(0, Math.max(2, Math.round(W.wire.progress * 20) + 1)).map(toScreen));
     }
   }
   // watering: a ring around the can while it is waiting to be picked up
