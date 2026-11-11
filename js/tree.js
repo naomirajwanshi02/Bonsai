@@ -119,7 +119,8 @@ const STYLES = {
   twin: () => ({
     trunks: [
       { fin: P([[-0.06, 0, 0], [-0.1, 0.3, 0], [-0.02, 0.62, 0.02], [-0.12, 0.92, 0], [-0.06, 1.25, 0.02], [-0.1, 1.45, 0]]), r0: 0.13, r1: 0.025 },
-      { fin: P([[0.05, 0, 0.02], [0.14, 0.25, 0.02], [0.26, 0.5, 0], [0.3, 0.75, 0.02], [0.38, 0.98, 0]]), r0: 0.085, r1: 0.02 },
+      { fin: P([[0.05, 0, 0.02], [0.14, 0.25, 0.02], [0.26, 0.5, 0], [0.3, 0.75, 0.02], [0.38, 0.98, 0]]),
+        raw: P([[0.05, 0, 0.02], [0.08, 0.26, 0.02], [0.1, 0.52, 0], [0.1, 0.78, 0.02], [0.12, 1.02, 0]]), r0: 0.085, r1: 0.02 },
     ],
     branches: [
       { t: 0, u: 0.35, az: 185, el: -8, len: 0.6, wire: true },
@@ -297,12 +298,15 @@ export function buildTree(def){
   const leafTex = foliageTexture(L.foliage, L.leaf, L.leaf2);
   const leafMat = new THREE.MeshStandardMaterial({ map: leafTex, alphaTest: 0.42, alphaToCoverage: true, side: THREE.DoubleSide, roughness: 0.85 });
   leafMat.onBeforeCompile = (sh) => {
-    // light the foliage pad as one soft mass from above (no dark back faces)
-    sh.vertexShader = sh.vertexShader.replace('#include <defaultnormal_vertex>',
-      '#include <defaultnormal_vertex>\n transformedNormal = normalize(mix(transformedNormal, normalMatrix * vec3(0.0, 1.0, 0.25), 0.7));');
+    // light each foliage pad as one rounded mass: every spray takes the normal of the
+    // pad's surface where it sits (aOut), so pads shade like domes, with no dark back faces
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 aOut;')
+      .replace('#include <defaultnormal_vertex>', '#include <defaultnormal_vertex>\n transformedNormal = normalize(normalMatrix * aOut);');
     sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_begin>',
       '#include <normal_fragment_begin>\n normal = normalize(vNormal);');
   };
+  // shadows from the sprays follow their painted outline, not the card square
+  const leafDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: leafTex, alphaTest: 0.42, side: THREE.DoubleSide });
 
   // pot, soil, rock
   const pot = buildPot(L.pot, mats);
@@ -328,8 +332,12 @@ export function buildTree(def){
 
   // trunks
   const trunks = spec.trunks.map((T, ti) => {
-    const seg = 40, radial = 14;
-    const noise = Array.from({ length: (seg + 1) * radial }, () => (r() - 0.5) * 0.09);
+    const seg = 60, radial = 22;
+    // bark ridges running up the trunk (fluting), strongest at the base, plus small lumps
+    const ridge = Array.from({ length: radial }, () => (r() - 0.5) * 0.16);
+    const sm = ridge.map((v, j) => (ridge[(j + radial - 1) % radial] + 2 * v + ridge[(j + 1) % radial]) / 4);
+    const noise = [];
+    for (let i = 0; i <= seg; i++) for (let j = 0; j < radial; j++) noise.push(sm[j] * (1 - 0.6 * i / seg) + (r() - 0.5) * 0.035);
     const fin = curveOf(T.fin), raw = curveOf(T.raw || T.fin);
     const radius = (u) => T.r1 + (T.r0 - T.r1) * Math.pow(1 - u, 1.25) + T.r0 * 0.55 * Math.exp(-u * 16);
     const dF = tubeData(fin, seg, radial, radius, noise, { cap: T.cap ?? true });
@@ -395,8 +403,10 @@ export function buildTree(def){
       q.setFromEuler(e);
       const sc = cardSize * (0.75 + r() * 0.5);
       const m = new THREE.Matrix4().compose(V(x, y, z), q.clone(), s3.set(sc, sc, sc));
-      const shade = THREE.MathUtils.clamp(0.62 + 0.38 * ((y / H) + 0.3) + (r() - 0.5) * 0.18, 0.45, 1.05);
-      cards.push({ m, th: r(), shade });
+      // outward normal of the pad dome at this spot, and a little occlusion deep inside it
+      const out = V(x / R, (y / H) * 1.4 + 0.45, z / R).normalize();
+      const shade = THREE.MathUtils.clamp(0.5 + 0.22 * ((y / H) + 0.3) + 0.3 * d + (r() - 0.5) * 0.14, 0.42, 1.05);
+      cards.push({ m, th: r(), shade, out });
     }
     const pad = { host, local: local.clone(), R, H, cards, trim, extra, gone: false, fall: null, base: 1 };
     pads.push(pad);
@@ -417,7 +427,8 @@ export function buildTree(def){
     const rb = Math.min(trunkR * (B.keep ? 0.62 : 0.5), 0.07);
     const pts = P([[-trunkR * 0.6, 0, 0], [len * 0.33, -0.04 * len, 0.05 * len * side], [len * 0.66, -0.05 * len, -0.04 * len * side], [len, 0.03 * len, 0.02 * len * side]]);
     const curve = curveOf(pts);
-    const radius = (u) => rb * (1 - u * 0.78);
+    // a swollen collar where the branch leaves the trunk, then a steady taper
+    const radius = (u) => rb * (1 - u * 0.78) * (1 + 0.4 * Math.exp(-u * 12));
     const parts = [geoOf(tubeData(curve, 16, 9, radius, null, { cap: true, uvScale: 0.7 }))];
     const padsHere = [];
     const tipR = THREE.MathUtils.clamp(0.16 + len * 0.17, 0.17, 0.32) * (B.keep ? 1 : 0.85);
@@ -464,51 +475,149 @@ export function buildTree(def){
   const cardGeo = new THREE.PlaneGeometry(1, 1);
   if (tuft) cardGeo.translate(0, 0.42, 0);
   const total = pads.reduce((n, p) => n + p.cards.length, 0);
+  {
+    const outs = new Float32Array(total * 3);
+    let k = 0;
+    for (const p of pads) for (const c of p.cards){ outs.set([c.out.x, c.out.y, c.out.z], k * 3); k++; }
+    cardGeo.setAttribute('aOut', new THREE.InstancedBufferAttribute(outs, 3));
+  }
   const foliage = new THREE.InstancedMesh(cardGeo, leafMat, total);
   foliage.frustumCulled = false;
   foliage.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  foliage.customDepthMaterial = leafDepth;
+  foliage.castShadow = true;
+  foliage.receiveShadow = true;
   {
     const col = new THREE.Color();
     let k = 0;
     for (const p of pads) for (const c of p.cards){ foliage.setColorAt(k++, col.setScalar(c.shade)); }
   }
   root.add(foliage);
+  // a dense, darker core inside every pad, so pads read as solid masses with depth
+  // (apricot blossom stays airy and has none)
+  let cores = null;
+  if (L.foliage !== 'blossom'){
+    const cg = new THREE.IcosahedronGeometry(1, 3);
+    const a = cg.attributes.position, cr = rng(L.seed + 9);
+    for (let i = 0; i < a.count; i++){ const v = V(a.getX(i), a.getY(i), a.getZ(i)); v.multiplyScalar(1 + (cr() - 0.5) * 0.22); a.setXYZ(i, v.x, v.y, v.z); }
+    cg.computeVertexNormals();
+    const coreMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(L.leaf).multiplyScalar(0.55), roughness: 0.95 });
+    cores = new THREE.InstancedMesh(cg, coreMat, pads.length);
+    cores.frustumCulled = false;
+    cores.castShadow = true;
+    cores.receiveShadow = true;
+    cores.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    root.add(cores);
+  }
 
-  // wires: on the trunk when it is bent, and on the main branches
+  // ------------------------------------------------------------------ wiring
+  // Each tree is shaped its own way (look.wiring), as growers would:
+  //   trace       — coil wire on by following the branch, then it bends
+  //   pull        — the coil goes on with a tap, then you pull the tip down to its place
+  //   circle      — wind the wire on by circling the trunk (or tie roots round the rock)
+  //   circle+pull — wind it on, then pull the trunk over the edge (cascade)
+  //   guy         — a guy wire from the tip to a hook on the pot pulls the part into place
+  const WI = L.wiring || { branches: 'trace', coilOff: 'unwind' };
   const wireR = 0.0075;
   const wireTargets = [];
-  trunks.forEach((T) => {
-    if (!T.def.wire) return;
-    const n = 220;
-    const rad = (u) => (T.def.r1 + (T.def.r0 - T.def.r1) * Math.pow(1 - u, 1.25)) * 0.9 + wireR;
-    const hf = helixPoints(T.fin, rad, { from: 0.05, to: 0.9, pitch: 1.05, n });
-    const hr = helixPoints(T.raw, rad, { from: 0.05, to: 0.9, pitch: 1.05, n });
-    const g = new THREE.TubeGeometry(curveOf(hf), n, wireR * 1.25, 6, false);
-    const gr = new THREE.TubeGeometry(curveOf(hr), n, wireR * 1.25, 6, false);
-    g.morphAttributes.position = [gr.attributes.position];
-    g.morphAttributes.normal = [gr.attributes.normal];
+  const tmpObj = new THREE.Object3D();
+  tmpObj.rotation.order = 'YZX';
+  // where a part's tip sits at bend k, in the tree's own space
+  function tipTree(W, k, out = new THREE.Vector3()){
+    if (W.kind === 'trunk') return out.copy(W.T.raw.getPointAt(0.9)).lerp(W.T.fin.getPointAt(0.9), k);
+    const b = W.br;
+    trunkPoint(b.t, b.u, tmpObj.position);
+    tmpObj.rotation.set(0, lerp(b.azRaw, b.az, k) * D, lerp(b.elRaw, b.el, k) * D);
+    tmpObj.updateMatrix();
+    return out.copy(b.curve.getPointAt(0.9)).applyMatrix4(tmpObj.matrix);
+  }
+  function makeGuy(W){
+    const line = new THREE.Mesh(new THREE.CylinderGeometry(0.0055, 0.0055, 1, 6, 1).translate(0, 0.5, 0), mats.wire);
+    const hook = new THREE.Group();
+    const peg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.07, 8), mats.wire);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.006, 6, 18), mats.wire);
+    ring.position.y = 0.045;
+    hook.add(peg, ring);
+    line.visible = false; hook.visible = false;
+    line.castShadow = true;
+    root.add(line, hook);
+    W.guy = { line, hook, on: false, fall: 0, pos: new THREE.Vector3() };
+  }
+  // the hook goes on the rim of the pot, on the side the part is pulled toward
+  function hookFor(tip){
+    const p = L.pot, dir = V(tip.x, 0, tip.z);
+    if (dir.lengthSq() < 1e-4) dir.set(1, 0, 0);
+    dir.normalize();
+    const k = (p.shape === 'oval' || p.shape === 'round')
+      ? 1 / Math.sqrt((dir.x / (p.w / 2)) ** 2 + (dir.z / (p.d / 2)) ** 2)
+      : Math.min((p.w / 2) / Math.max(Math.abs(dir.x), 1e-3), (p.d / 2) / Math.max(Math.abs(dir.z), 1e-3));
+    return dir.multiplyScalar(k * 0.9).setY(0.04);
+  }
+  function coilOn(W, curveF, curveR, rad, n, parent, phase){
+    const hf = helixPoints(curveF, rad, { from: W.kind === 'trunk' ? 0.05 : 0.12, to: W.kind === 'trunk' ? 0.9 : 0.94, pitch: 1.05, n, phase });
+    const g = new THREE.TubeGeometry(curveOf(hf), n, W.kind === 'trunk' ? wireR * 1.3 : wireR, 6, false);
+    if (curveR){
+      const hr = helixPoints(curveR, rad, { from: 0.05, to: 0.9, pitch: 1.05, n, phase });
+      const gr = new THREE.TubeGeometry(curveOf(hr), n, wireR * 1.3, 6, false);
+      g.morphAttributes.position = [gr.attributes.position];
+      g.morphAttributes.normal = [gr.attributes.normal];
+    }
     const m = new THREE.Mesh(g, mats.wire);
-    m.morphTargetInfluences = [1];
+    if (curveR) m.morphTargetInfluences = [1];
     m.geometry.setDrawRange(0, 0);
     m.frustumCulled = false;
-    root.add(m);
-    T.wire = { mesh: m, segs: n, radial: 6, progress: 0, removed: false };
-    wireTargets.push({ kind: 'trunk', T, wire: T.wire, name: 'the trunk' });
-  });
-  for (const br of branches){
-    if (!br.keep || !br.spec.wire) continue;
-    const n = 120;
-    const hp = helixPoints(br.curve, (u) => br.radius(u) * 0.72 + wireR, { from: 0.12, to: 0.94, pitch: 1.1, n, phase: r() * 6 });
-    const g = new THREE.TubeGeometry(curveOf(hp), n, wireR, 6, false);
-    const m = new THREE.Mesh(g, mats.wire);
-    m.geometry.setDrawRange(0, 0);
-    m.frustumCulled = false;
-    br.group.add(m);
-    br.wire = { mesh: m, segs: n, radial: 6, progress: 0, removed: false };
-    wireTargets.push({ kind: 'branch', br, wire: br.wire, name: 'a branch' });
+    m.castShadow = true;
+    parent.add(m);
+    W.wire = { mesh: m, segs: n, radial: 6, progress: 0, removed: false };
+  }
+  if (WI.trunk){
+    const T = trunks[WI.trunkIndex ?? 0];
+    const W = { kind: 'trunk', T, method: WI.trunk, name: trunks.length > 1 ? 'the small trunk' : 'the trunk' };
+    if (WI.trunk === 'guy') makeGuy(W);
+    else {
+      coilOn(W, T.fin, T.raw, (u) => (T.def.r1 + (T.def.r0 - T.def.r1) * Math.pow(1 - u, 1.25)) * 0.9 + wireR, 220, root, 0);
+      T.wire = W.wire;
+    }
+    W.unwire = WI.trunk === 'guy' ? 'release' : WI.coilOff;
+    wireTargets.push(W);
+  }
+  if (WI.ties && spec.rock){
+    // three bands of wire round the rock hold the young roots against it
+    const R = spec.rock, ties = [];
+    for (const dy of [-0.06, 0.08, 0.2]){
+      const y = R.y + dy, rx = R.a * Math.sqrt(Math.max(0.05, 1 - (dy / R.b) ** 2)) * 1.17;
+      const pts = [];
+      for (let i = 0; i < 48; i++){ const a = (i / 48) * Math.PI * 2 + Math.PI / 2; pts.push(V(Math.cos(a) * rx, y + Math.sin(a * 3) * 0.01, Math.sin(a) * rx * 0.92)); }
+      const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 96, 0.009, 6, true);
+      const m = new THREE.Mesh(g, mats.wire);
+      m.geometry.setDrawRange(0, 0);
+      m.castShadow = true;
+      root.add(m);
+      ties.push({ mesh: m, y, rx, fall: null, cut: false });
+    }
+    const W = { kind: 'tie', method: 'circle', unwire: 'cut', ties, name: 'the roots', wire: { progress: 0, segs: 96, radial: 6, removed: false } };
+    wireTargets.push(W);
+  }
+  if (WI.branches){
+    for (const br of branches){
+      if (!br.keep || !br.spec.wire) continue;
+      const W = { kind: 'branch', br, method: WI.branches, name: 'a branch' };
+      if (WI.branches === 'guy') makeGuy(W);
+      else coilOn(W, br.curve, null, (u) => br.radius(u) * 0.72 + wireR, 120, br.group, r() * 6);
+      br.wire = W.wire || null;
+      W.unwire = WI.branches === 'guy' ? 'release' : WI.coilOff;
+      wireTargets.push(W);
+    }
+  }
+  // hooks sit where each guy wire will pull its part, with every trunk already shaped
+  {
+    const saveT = trunks.map((T) => T.bend);
+    trunks.forEach((T) => { T.bend = 1; });
+    for (const W of wireTargets) if (W.guy){ W.guy.pos.copy(hookFor(tipTree(W, 1))); W.guy.hook.position.copy(W.guy.pos); }
+    trunks.forEach((T, i) => { T.bend = saveT[i]; });
   }
   // keepers without wire still need a little shaping; they follow the wired ones
-  const freeKeepers = branches.filter((b) => b.keep && !b.spec.wire);
+  const freeKeepers = branches.filter((b) => b.keep && !wireTargets.some((W) => W.br === b));
 
   // moss: appears on the soil when the bonsai is finished
   const mossGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
@@ -539,6 +648,7 @@ export function buildTree(def){
     dirty: true,
   };
 
+  const tmp2 = new THREE.Vector3(), tmp3 = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0), coreM = new THREE.Matrix4();
   const m4 = new THREE.Matrix4(), padM = new THREE.Matrix4(), rootInv = new THREE.Matrix4(), tmp = new THREE.Vector3(), ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
   function place(){
     for (const T of trunks){
@@ -549,6 +659,19 @@ export function buildTree(def){
       if (b.fall) continue;
       trunkPoint(b.t, b.u, b.group.position);
       b.group.rotation.set(0, lerp(b.azRaw, b.az, b.bend) * D, lerp(b.elRaw, b.el, b.bend) * D);
+    }
+    // guy wires run from the part's tip to their hook on the pot
+    for (const W of wireTargets){
+      const G = W.guy;
+      if (!G) continue;
+      G.line.visible = G.on && G.fall < 1;
+      if (!G.line.visible) continue;
+      const a = tipTree(W, W.kind === 'trunk' ? W.T.bend : W.br.bend, tmp2);
+      const dir = tmp3.copy(G.pos).sub(a);
+      const len = dir.length();
+      G.line.position.copy(a);
+      G.line.quaternion.setFromUnitVectors(UP, dir.normalize());
+      G.line.scale.set(1, len * (1 - G.fall), 1);
     }
   }
   tree.update = (dt = 0) => {
@@ -571,6 +694,16 @@ export function buildTree(def){
       p.fall.off.addScaledVector(p.fall.v, dt);
       if (p.fall.t > 1.1){ p.gone = true; p.fall = null; }
     }
+    for (const W of wireTargets){
+      if (W.guy && W.guy.falling){ W.guy.fall = Math.min(1, W.guy.fall + dt * 1.8); moving = true; if (W.guy.fall >= 1){ W.guy.falling = false; W.guy.line.visible = false; } }
+      for (const T of W.ties || []){
+        if (!T.fall) continue;
+        T.fall.t += dt; moving = true;
+        T.mesh.position.y -= dt * (0.4 + T.fall.t * 3);
+        T.mesh.scale.setScalar(Math.max(0.01, 1 - T.fall.t * 0.6));
+        if (T.fall.t > 1){ T.mesh.visible = false; T.fall = null; }
+      }
+    }
     if (!tree.dirty && !moving) return;
     tree.dirty = false;
     place();
@@ -590,12 +723,18 @@ export function buildTree(def){
       if (p.host.scale) sc *= p.host.scale.x;
       padM.makeScale(sc, sc, sc).setPosition(tmp);
       const hide = p.gone || (p.trim && S.pruned && !p.fall);
+      if (cores){
+        const cs = hide || p.trim ? 0 : sc * (p.extra ? 1 : 0.55 + 0.45 * S.vis);
+        coreM.makeScale(p.R * 0.56 * cs, p.H * 0.5 * cs, p.R * 0.48 * cs).setPosition(tmp.x, tmp.y - p.H * 0.12 * cs, tmp.z);
+        cores.setMatrixAt(pads.indexOf(p), cs ? coreM : ZERO);
+      }
       for (const c of p.cards){
         const show = !hide && (p.extra || p.trim || c.th <= S.vis);
         foliage.setMatrixAt(k++, show ? m4.multiplyMatrices(padM, c.m) : ZERO);
       }
     }
     foliage.instanceMatrix.needsUpdate = true;
+    if (cores) cores.instanceMatrix.needsUpdate = true;
   };
 
   // ------------------------------------------------------------------ actions
@@ -635,8 +774,46 @@ export function buildTree(def){
   };
   tree.setWire = (W, k) => {
     const w = W.wire;
+    if (!w) return;
     w.progress = k;
-    w.mesh.geometry.setDrawRange(0, Math.floor(k * w.segs) * w.radial * 6);
+    if (W.ties){
+      // the three bands go on one after another
+      W.ties.forEach((T, i) => { const f = THREE.MathUtils.clamp(k * 3 - i, 0, 1); T.mesh.geometry.setDrawRange(0, Math.floor(f * w.segs) * w.radial * 6); });
+    } else w.mesh.geometry.setDrawRange(0, Math.floor(k * w.segs) * w.radial * 6);
+  };
+  tree.tipWorld = (W, k, out = new THREE.Vector3()) => tipTree(W, k, out).applyMatrix4(root.matrixWorld);
+  tree.hookWorld = (W, out = new THREE.Vector3()) => out.copy(W.guy.pos).applyMatrix4(root.matrixWorld);
+  tree.bendOf = (W) => (W.kind === 'trunk' ? W.T.bend : W.kind === 'branch' ? W.br.bend : 1);
+  // the middle of a part (where to circle round it)
+  tree.centerWorld = (W, out = new THREE.Vector3()) => {
+    if (W.kind === 'tie') return out.set(0, spec.rock.y + 0.08, 0).applyMatrix4(root.matrixWorld);
+    if (W.kind === 'trunk') return trunkPoint(trunks.indexOf(W.T), 0.42, out).applyMatrix4(root.matrixWorld);
+    return out.copy(W.br.curve.getPointAt(0.5)).applyMatrix4(W.br.group.matrixWorld);
+  };
+  // the front of the next band still on the rock
+  tree.tieWorld = (W, out = new THREE.Vector3()) => {
+    const T = W.ties.find((t) => !t.cut);
+    return T ? out.set(0, T.y, T.rx * 0.92).applyMatrix4(root.matrixWorld) : null;
+  };
+  tree.cutTie = (W) => {
+    const T = W.ties.find((t) => !t.cut);
+    if (!T) return true;
+    T.cut = true; T.fall = { t: 0 };
+    return W.ties.every((t) => t.cut);
+  };
+  tree.showGuy = (W, on) => { W.guy.on = on; W.guy.hook.visible = on || W.guy.hook.visible; tree.dirty = true; };
+  tree.releaseGuy = (W) => { W.guy.falling = true; W.guy.fall = 0.001; W.guy.hook.visible = false; tree.dirty = true; };
+  // the wire cutters take a third of the coil off, from the tip down; returns where the piece was
+  tree.snip = (W) => {
+    const w = W.wire, from = w.progress, to = Math.max(0, Math.round((from - 1 / 3) * 3) / 3);
+    const path = tree.targetPath(W, 12);
+    const at = path[Math.round(((from + to) / 2) * 12)];
+    tree.setWire(W, to < 0.02 ? 0 : to);
+    return { at, done: to < 0.02 };
+  };
+  tree.snipPoint = (W, out = new THREE.Vector3()) => {
+    const path = tree.targetPath(W, 12);
+    return out.copy(path[Math.round(Math.max(0, W.wire.progress - 1 / 6) * 12)]);
   };
   tree.freeKeepers = freeKeepers;
   tree.setWet = (k) => { mats.soil.color.setRGB(1 - 0.42 * k, 1 - 0.46 * k, 1 - 0.5 * k); };
@@ -645,7 +822,7 @@ export function buildTree(def){
   tree.finish = () => {
     for (const b of branches){ if (!b.keep){ b.cut = true; b.done = true; b.group.visible = false; b.pads.forEach((p) => { p.gone = true; }); } else b.bend = 1; }
     for (const T of trunks) T.bend = 1;
-    for (const W of wireTargets) tree.setWire(W, 0);
+    for (const W of wireTargets){ tree.setWire(W, 0); if (W.guy){ W.guy.on = false; W.guy.hook.visible = false; } }
     Object.assign(tree.state, { vis: 1, padScale: 1, pruned: true });
     moss.visible = true;
     tree.dirty = true;
@@ -682,7 +859,16 @@ export function buildTree(def){
     Object.values(mats).forEach((m) => m.dispose());
     leafMat.dispose(); mossMat.dispose();
     rockMesh?.material.dispose();
+    leafDepth.dispose();
+    if (cores){ cores.geometry.dispose(); cores.material.dispose(); }
   };
+
+  // everything casts and catches soft shadows (the stage turns the shadow map on)
+  root.traverse((o) => {
+    if (!o.isMesh || o.isInstancedMesh) return;
+    o.receiveShadow = true;
+    o.castShadow = !moss.children.includes(o) && o !== soil;
+  });
 
   tree.update(0);
   return tree;

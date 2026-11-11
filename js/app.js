@@ -147,7 +147,8 @@ Stage.on({
     $('sbCount').textContent = total > 1 ? `${n} / ${total}` : `${Math.round(n * 100)}%`;
   },
   cut(why){ if (why) $('hint').innerHTML = `Snip! That branch was <b>${why}</b>.`; },
-  wireTarget(W){ if (S.step === 1) $('hint').innerHTML = `Drag along the dotted line to wire <b>${W.name}</b>`; },
+  wireTarget(W, phase){ if (S.step === 1) $('hint').innerHTML = wireHint(W, phase); },
+  unwireTarget(W){ if (S.step === 3 && W) $('hint').innerHTML = UNWIRE_HINT[W.unwire]; },
   stepDone(id){
     const s = STEPS.find((x) => x.id === id);
     $('sdTitle').textContent = s.done.split('!')[0] + '!';
@@ -157,6 +158,25 @@ Stage.on({
     Stage.after(2, () => { overlay('stepdone', false); if (S.phase === 'work') nextStep(); });
   },
 });
+
+// What to do for each wiring method, in a child's words. The metal is named, because
+// growers choose it on purpose: copper for the conifers, aluminium for the broadleaf trees.
+function wireHint(W, phase){
+  const metal = S.tree?.look.wire === 'copper' ? 'copper' : 'aluminium';
+  if (W.kind === 'tie') return 'Circle your finger round the <b>rock</b> to tie the roots down with wire';
+  if (phase === 'trace') return `Drag along the <b>dotted line</b> to coil ${metal} wire round <b>${W.name}</b>`;
+  if (phase === 'tap') return `Tap <b>${W.name}</b> to coil ${metal} wire round it`;
+  if (phase === 'circle') return `Circle your finger round <b>${W.name}</b> to wind ${metal} wire on`;
+  if (W.guy) return `Pull the <b>red dot</b> into the ring: a guy wire to the pot will hold ${W.name} there`;
+  if (W.kind === 'trunk' && S.tree?.style === 'Cascade') return 'Now pull the <b>red dot</b> down into the ring to bend the trunk over the edge';
+  return `Now pull the <b>red dot</b> into the ring to bend ${W.name} into shape`;
+}
+const UNWIRE_HINT = {
+  unwind: 'Tap the <b>red button</b> on each wire and it spins off',
+  snip: 'Tap the <b>cutters</b> to snip the wire off, a piece at a time',
+  release: 'Tap the <b>hook</b> on the pot to untie each guy wire',
+  cut: 'Tap the <b>scissors</b> to cut each band of wire round the rock',
+};
 
 // ------------------------------------------------------------ 6 · finished
 function finish(){
@@ -191,6 +211,16 @@ async function takePhoto(){
   $('shareBtn').onclick = () => navigator.share({ files: [file], title: `My ${t.name} bonsai` }).catch(() => {});
   show('photo');
 }
+// Leave the workbench and go back to the welcome screen (the camera stays on)
+function exitHome(){
+  S.phase = 'intro';
+  S.step = -1;
+  overlay('hud', false); overlay('finish', false); overlay('stepdone', false);
+  document.body.classList.remove('finished');
+  Stage.setMode('idle');
+  Stage.clear();
+  show('intro');
+}
 function backToPick(){
   S.phase = 'pick';
   overlay('hud', false); overlay('finish', false);
@@ -205,7 +235,9 @@ $('scanRetry').addEventListener('click', openScan);
 $('scanSkip').addEventListener('click', () => { Stage.stop(); overlay('guide', false); S.phase = 'intro'; Stage.openDemo($('ar'), layers()); show('intro'); });
 $('toHowto').addEventListener('click', () => show('howto'));
 $('toPick').addEventListener('click', openPick);
-$('closeBtn').addEventListener('click', backToPick);
+$('closeBtn').addEventListener('click', () => { $('exitName').textContent = S.tree ? S.tree.name : ''; show('exit'); });
+$('keepBtn').addEventListener('click', () => show(null));
+$('exitBtn').addEventListener('click', exitHome);
 $('turnBtn').addEventListener('click', () => Stage.turn());
 $('factBtn').addEventListener('click', () => { const t = S.tree; if (t) toast(`<span class="cap">Did you know?</span><br>${t.fact}`, 6000); });
 $('photoBtn').addEventListener('click', takePhoto);

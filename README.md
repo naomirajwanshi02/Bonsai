@@ -20,18 +20,34 @@ Made for ages 8–14.
 5. **Choose a tree.** Eight cards, each showing the bonsai that tree becomes.
 6. **The workbench.** The young plant pops up over the camera. The step bar at the bottom
    shows the four jobs:
-   - **Prune.** Red scissors mark the branches a grower would remove. Swipe down across
-     them to cut. Each cut says why: too low on the trunk, at the same height as another
-     branch, pointing straight at you, shooting straight up, or a tall shoot spoiling the top.
+   - **Prune.** Red scissors mark the branches a grower would remove. Tap them to cut.
+     Each cut says why: too low on the trunk, at the same height as another branch,
+     pointing straight at you, shooting straight up, or a tall shoot spoiling the top.
      Pruning also tidies the leggy growth into neat foliage pads.
-   - **Wire.** A dotted line runs along a branch (or the trunk). Drag along it to coil wire
-     on, at about 45° like real bonsai wire. When it is wired, the branch bends down into its
-     styled shape. Pines and juniper get copper wire; maples and the apricot get aluminium.
+   - **Wire.** Every tree is wired its own way (see the table below). Wire goes on at about
+     45° like real bonsai wire: copper on the pines and juniper, aluminium on the broadleaf trees.
    - **Water.** Drag the copper watering can over the pot and hold it there. A gentle shower
      falls, the soil darkens and the tree fills out.
-   - **Unwire.** Tap each wire to unwind it before it cuts into the bark. The shape stays.
+   - **Unwire.** Tap the red buttons to take the wire off before it cuts into the bark. Each
+     tree comes undone its own way; the shape stays.
 7. **Finished.** Moss grows on the soil, the tree turns slowly and a card shows a fact.
    **Take a photo** saves the camera picture with your bonsai and a caption.
+
+The **×** at the top right asks before leaving: *Keep growing*, or *Exit to home* (back to
+the welcome screen).
+
+## How each tree is wired and unwired
+
+| Tree | Wiring | Taking it off |
+|---|---|---|
+| Japanese Black Pine | Drag along the dotted line on each branch; the coil follows your finger and the branch bends down | Tap each coil and it spins off |
+| Chinese Juniper | Circle your finger round the trunk to wind the wire on, then pull its tip down over the edge of the tall pot | Snip with the cutters, a piece at a time |
+| Japanese Cedar | Tap a branch to coil the wire on, then pull its tip down to level | Tap each coil and it spins off |
+| Japanese Maple | A guy wire from the trunk to a hook on the pot pulls the trunk into its slant; branches are traced | Untie the hook, then snip the branch wire |
+| Japanese Zelkova | Guy wires from three branches to hooks on the pot spread the broom | Untie each hook |
+| Trident Maple | Circle the rock to tie the roots down with three bands, then tap and pull the branches | Cut each band, then unwind the branches |
+| Scots Pine | Circle the trunk to wind the wire on and it twists into its literati curve; tap and pull the top branches | Snip with the cutters |
+| Japanese Apricot | A guy wire pulls the small trunk away from the big one; branches are traced | Untie the hook, then unwind the branches |
 
 ## The eight trees
 
@@ -60,9 +76,13 @@ No 3D model files are downloaded: every tree is built in the browser (`js/tree.j
 - **Raw and styled shapes:** each tree is built as both a young plant and a finished
   bonsai with the same mesh. The trunk morphs between them; branches rotate from pointing
   up to their styled angle.
-- **Foliage pads:** flat clouds of painted sprays (needle tufts, scale-leaf fronds, maple
-  and zelkova leaves, apricot blossom), lit as one soft mass from above, with smooth
+- **Foliage pads:** domed clouds of painted sprays (needle tufts, scale-leaf fronds, maple
+  and zelkova leaves, apricot blossom) around a dense darker core. Every spray takes the
+  normal of the dome where it sits, so each pad shades like a rounded mass, with smooth
   anti-aliased edges.
+- **Shadows:** the key light casts soft shadows. Branches shade the trunk, pads shade
+  each other and the soil, and an invisible floor catches the tree’s shadow under the pot,
+  so in AR it falls on your real table.
 - **Pots:** rectangular, oval, round and a tall cascade pot, glazed or unglazed, with a
   rim, a band and feet, and akadama-style soil.
 - **Light:** filmic tone mapping and a soft studio environment; in AR the exposure and
@@ -89,6 +109,7 @@ research, not the painting. To rebuild it, run the server and open
 | `js/look.js` | Lighting and room light |
 | `tools/serve.ps1` | Tiny local server (no Node or Python needed) |
 | `tools/make-target.html` | Builds and compiles the card |
+| `tools/autoplay.js` | Test aid: plays a tree through every step with simulated taps and drags |
 
 ## Run it
 
