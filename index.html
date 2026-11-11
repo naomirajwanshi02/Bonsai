@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ecdfc6">
+<title>Bonsai Garden AR</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B3%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendor/anatomy/iso.css">
+<link rel="stylesheet" href="css/anatomy-sepia.css">
+<link rel="stylesheet" href="css/app.css">
+<!-- mind-ar@1.2.5 imports sRGBEncoding, removed in three r162: keep three pinned at 0.160.0. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+  }
+}
+</script>
+</head>
+<body class="iso ar" data-theme="sepia">
+
+<!-- camera + 3D -->
+<div id="ar"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="marks" aria-hidden="true"></div>
+
+<!-- ============ 0 · CAMERA PERMISSION ============ -->
+<section id="perm" class="screen dim">
+  <div class="col center">
+    <div class="plate welcome">
+      <span class="corner tl">Fig. 00</span><span class="corner tr">Camera</span>
+      <div class="permicon" aria-hidden="true"><svg viewBox="0 0 48 48" width="56" height="56"><rect x="5" y="13" width="38" height="27" rx="5" fill="none" stroke="currentColor" stroke-width="3"/><path d="M17 13l3-5h8l3 5" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><circle cx="24" cy="26.5" r="7.5" fill="none" stroke="currentColor" stroke-width="3"/></svg></div>
+      <h1>Allow camera access</h1>
+      <p>This page needs your camera. Tap the button, then choose <b>Allow</b>.</p>
+      <button class="btn red" id="permBtn">Allow camera</button>
+      <div class="status dark" id="permStatus"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 1 · VIEWFINDER: find the card ============ -->
+<div id="guide" class="overlay">
+  <div class="scan-top plate"><b>Point your camera at the card</b><span class="cap">The bonsai garden opens as soon as it's found</span></div>
+  <div class="frame tall"><i></i><i></i><i></i><i></i><div class="sweep"></div></div>
+  <div class="scan-bottom">
+    <div class="status" id="scanStatus">Starting camera…</div>
+    <div class="row">
+      <button class="btn ghost small" id="scanRetry" hidden>Try again</button>
+      <a class="btn ghost small" href="target.png" target="_blank" rel="noopener">Get the card</a>
+      <button class="btn ghost small" id="scanSkip">No card? Skip</button>
+    </div>
+  </div>
+</div>
+
+<div id="found" class="overlay"><div class="plate badge"><div class="stamp"><svg viewBox="0 0 48 48" width="36" height="36" aria-hidden="true"><path d="M24 40c0-8 1-13-4-18M24 30c3-4 7-5 11-5M21 23c-4-1-8 1-10 4" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><ellipse cx="24" cy="14" rx="11" ry="5" fill="currentColor"/><ellipse cx="36" cy="22" rx="7" ry="3.4" fill="currentColor"/><ellipse cx="10" cy="25" rx="7" ry="3.4" fill="currentColor"/><path d="M12 40h24l-2 5H14z" fill="currentColor"/></svg></div><b>Found it!</b><span>The bonsai garden is open</span></div></div>
+
+<!-- ============ 2 · WELCOME ============ -->
+<section id="intro" class="screen dim">
+  <div class="col center">
+    <div class="plate welcome">
+      <span class="corner tl">Fig. 01</span><span class="corner tr">Bonsai</span>
+      <div class="hero-wrap"><img class="hero-tree" src="assets/illustration.png" alt="A painted Japanese black pine bonsai in a shallow pot"></div>
+      <h1>Grow your own bonsai!</h1>
+      <p><b>Bonsai</b> is the art of growing a <b>real tree</b> in a small pot and shaping it to look like a big, old tree in nature.</p>
+      <p class="small">It began in <b>China</b> more than 1,300 years ago and was taken up in <b>Japan</b>, where monks grew little trees as a calm, patient art.</p>
+      <button class="btn red" id="toHowto">How to play</button>
+      <span class="corner bl">ages 8–14</span><span class="corner br">8 trees</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 · HOW TO PLAY ============ -->
+<section id="howto" class="screen dim">
+  <div class="col center">
+    <div class="plate welcome">
+      <span class="corner tl">Fig. 02</span><span class="corner tr">How to play</span>
+      <h1>Four jobs make a bonsai</h1>
+      <p>You get a young <b>nursery plant</b>. It is not a bonsai yet: turn it into one!</p>
+      <ol class="steps big">
+        <li><b>1</b><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="6.5" cy="17.5" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="17.5" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.6 15.4L18 4M15.4 15.4L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span><b class="t">Prune</b>Swipe <b>down</b> across the scissors to cut extra branches</span></li>
+        <li><b>2</b><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 20C8 15 12 9 21 4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M5 15l3 3M8 12l3 3M11 9l3 3M14 7l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span><b class="t">Wire</b>Trace the <b>dotted line</b> to coil wire on and bend the branch</span></li>
+        <li><b>3</b><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 9h9v9a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 12L3 7M2 5.5l2.5 2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M17 11c3 0 3 5 0 5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10v2M5 12v2M2 13v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span><b class="t">Water</b>Hold the <b>watering can</b> over the pot and watch it grow</span></li>
+        <li><b>4</b><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 18c4-1 6-5 9-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M14 9c2-2 2 2 4 0s2 2 3 1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="2 2.6"/></svg></span><span><b class="t">Unwire</b>Tap each <b>wire</b> to take it off. The shape stays!</span></li>
+      </ol>
+      <button class="btn red" id="toPick">Choose a tree</button>
+      <span class="corner bl">about 3 minutes</span><span class="corner br">4 steps</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 · CHOOSE A TREE ============ -->
+<section id="pick" class="screen dim">
+  <div class="col wide center">
+    <div class="plate pickcard">
+      <span class="corner tl">Fig. 03</span><span class="corner tr">Choose a tree</span>
+      <h1>Which bonsai will you grow?</h1>
+      <p class="sub">Each card shows the bonsai it will become. Tap one to get its young plant.</p>
+      <div class="cards" id="cards" role="listbox" aria-label="Choose a tree"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 · THE WORKBENCH ============ -->
+<div id="hud" class="overlay">
+  <div class="hud-top" id="hudTop">
+    <div class="hud-left">
+      <div class="plate namecard" id="namecard">
+        <span class="corner tl" id="ncFig">Fig. 01</span><span class="corner tr" id="ncStyle"></span>
+        <div class="nc-main"><b id="ncName"></b><span class="latin" id="ncLatin"></span></div>
+        <div class="nc-blurb" id="ncBlurb"></div>
+      </div>
+      <div class="hint" id="hint" role="status" aria-live="polite"></div>
+    </div>
+    <div class="iconcol">
+      <button class="iconbtn" id="closeBtn" aria-label="Choose another tree"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button>
+      <button class="iconbtn" id="turnBtn" aria-label="Turn the tree"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M19 12a7 7 0 1 1-2.05-4.95" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M19 4v4.5h-4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="iconbtn" id="factBtn" aria-label="Did you know?"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 10.5v6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="7.2" r="1.5" fill="currentColor"/></svg></button>
+    </div>
+  </div>
+
+  <div class="hud-bottom" id="hudBottom">
+    <div class="plate stepbar" id="stepbar">
+      <span class="corner tl" id="sbFig">Step 1 of 4</span><span class="corner tr" id="sbCount"></span>
+      <div class="pills" id="pills"></div>
+      <div class="meter"><i id="meter"></i></div>
+    </div>
+  </div>
+</div>
+
+<div id="stepdone" class="overlay"><div class="plate badge"><div class="stamp"><svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><b id="sdTitle">Pruned!</b><span id="sdText"></span></div></div>
+
+<!-- ============ 6 · FINISHED ============ -->
+<div id="finish" class="overlay">
+  <div class="plate finishcard" id="finishCard">
+    <span class="corner tl" id="fnFig">Fig. 04</span><span class="corner tr">Finished</span>
+    <h2>Your bonsai is ready!</h2>
+    <div class="fn-name"><b id="fnName"></b><span id="fnStyle"></span></div>
+    <p id="fnStyleLine"></p>
+    <p class="fact"><span class="cap">Did you know?</span><br><span id="fnFact"></span></p>
+    <div class="row">
+      <button class="btn red small" id="photoBtn">Take a photo</button>
+      <button class="btn ghost small" id="againBtn">Grow another</button>
+    </div>
+  </div>
+</div>
+
+<div id="flash" class="overlay"></div>
+
+<!-- ============ PHOTO ============ -->
+<section id="photo" class="screen dim">
+  <div class="col center">
+    <div class="plate photocard">
+      <span class="corner tl">Your photo</span><span class="corner tr" id="photoName"></span>
+      <img id="photoImg" alt="Your bonsai photo">
+      <div class="row">
+        <a class="btn red small" id="saveBtn" download="my-bonsai.jpg">Save</a>
+        <button class="btn ghost small" id="shareBtn" hidden>Share</button>
+        <button class="btn ghost small" id="photoBack">Back</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="plate toast" id="toast"></div>
+<div class="plate errbox" id="err" hidden><b>Something went wrong</b><pre id="errText"></pre><button class="btn small" id="errBtn">Start over</button></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

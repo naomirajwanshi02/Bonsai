@@ -1,0 +1,108 @@
+# 🌳 Bonsai Garden: a scan-to-play WebAR bonsai game
+
+Point your phone at the printed **Bonsai card**. When the card is recognised the bonsai
+garden opens over your camera. Choose one of eight trees, get its young nursery plant,
+and turn it into a bonsai in four jobs: **prune**, **wire**, **water** and **unwire**.
+Made for ages 8–14.
+
+**Play locally:** `http://localhost:8125/`
+**Without the card:** `?demo=1` · **Without any camera:** `?preview=1` · **Straight to a tree:** `?preview=1&tree=juniper`
+**The card to scan:** [`target.png`](target.png)
+
+## How it plays
+
+1. **Camera permission.** A plain first screen asks for the camera.
+2. **Scan.** MindAR image tracking watches the back camera until it sees the card. Its
+   tracking then stops, and the camera video stays on as the backdrop.
+3. **Welcome.** What bonsai is, in two sentences.
+4. **How to play.** The four jobs, with their icons.
+5. **Choose a tree.** Eight cards, each showing the bonsai that tree becomes.
+6. **The workbench.** The young plant pops up over the camera. The step bar at the bottom
+   shows the four jobs:
+   - **Prune.** Red scissors mark the branches a grower would remove. Swipe down across
+     them to cut. Each cut says why: too low on the trunk, at the same height as another
+     branch, pointing straight at you, shooting straight up, or a tall shoot spoiling the top.
+     Pruning also tidies the leggy growth into neat foliage pads.
+   - **Wire.** A dotted line runs along a branch (or the trunk). Drag along it to coil wire
+     on, at about 45° like real bonsai wire. When it is wired, the branch bends down into its
+     styled shape. Pines and juniper get copper wire; maples and the apricot get aluminium.
+   - **Water.** Drag the copper watering can over the pot and hold it there. A gentle shower
+     falls, the soil darkens and the tree fills out.
+   - **Unwire.** Tap each wire to unwind it before it cuts into the bark. The shape stays.
+7. **Finished.** Moss grows on the soil, the tree turns slowly and a card shows a fact.
+   **Take a photo** saves the camera picture with your bonsai and a caption.
+
+## The eight trees
+
+| # | Tree | Latin name | Style |
+|---|---|---|---|
+| 01 | Japanese Black Pine | *Pinus thunbergii* | Informal Upright |
+| 02 | Chinese Juniper | *Juniperus chinensis* | Cascade |
+| 03 | Japanese Cedar | *Cryptomeria japonica* | Formal Upright |
+| 04 | Japanese Maple | *Acer palmatum* | Slanting |
+| 05 | Japanese Zelkova | *Zelkova serrata* | Broom |
+| 06 | Trident Maple | *Acer buergerianum* | Root over Rock |
+| 07 | Scots Pine | *Pinus sylvestris* | Literati |
+| 08 | Japanese Apricot | *Prunus mume* | Twin Trunk |
+
+All names are in English; the app has no Japanese script. Every fact is sourced in
+[SOURCES.md](SOURCES.md). The design rules the trees follow are summarised in
+[RESEARCH.md](RESEARCH.md).
+
+## How the trees are made
+
+No 3D model files are downloaded: every tree is built in the browser (`js/tree.js`).
+
+- **Trunk:** a tapered tube along a curve, flaring into surface roots at the base, with
+  lumpy bark painted on a canvas (plates for pines, strings for juniper and cedar, smooth
+  for maples and zelkova, flakes for trident maple).
+- **Raw and styled shapes:** each tree is built as both a young plant and a finished
+  bonsai with the same mesh. The trunk morphs between them; branches rotate from pointing
+  up to their styled angle.
+- **Foliage pads:** flat clouds of painted sprays (needle tufts, scale-leaf fronds, maple
+  and zelkova leaves, apricot blossom), lit as one soft mass from above, with smooth
+  anti-aliased edges.
+- **Pots:** rectangular, oval, round and a tall cascade pot, glazed or unglazed, with a
+  rim, a band and feet, and akadama-style soil.
+- **Light:** filmic tone mapping and a soft studio environment; in AR the exposure and
+  tint follow the room seen by the camera.
+
+## The card
+
+The card is the painted Japanese black pine (`assets/illustration.png`) on a sepia plate
+with rulers and a seal. It is only the image the tracker looks for. The 3D trees follow the
+research, not the painting. To rebuild it, run the server and open
+`tools/make-target.html?build=1` (it saves `target.png` and `targets.mind`).
+
+## Files
+
+| File | What it does |
+|---|---|
+| `index.html` | All screens and the HUD |
+| `css/app.css`, `css/anatomy-sepia.css` | The Noh Masks design system on the Anatomy sepia tokens |
+| `js/app.js` | Screen flow and the four steps |
+| `js/stage.js` | Camera backdrop, card scan, 3D stage, gestures, watering can, photo, card thumbnails |
+| `js/tree.js` | The procedural bonsai (raw plant → bonsai) |
+| `js/textures.js` | Canvas-painted bark, foliage, soil, rock and moss |
+| `js/data.js` | The eight trees and the step texts |
+| `js/look.js` | Lighting and room light |
+| `tools/serve.ps1` | Tiny local server (no Node or Python needed) |
+| `tools/make-target.html` | Builds and compiles the card |
+
+## Run it
+
+```
+powershell -ExecutionPolicy Bypass -File tools/serve.ps1
+```
+
+Then open `http://localhost:8125/?preview=1`. The camera needs https on a phone
+(GitHub Pages provides it).
+
+## The Anatomy look
+
+The interface uses the [Anatomy](https://github.com/wheresryan22/anatomy) skill (MIT) in
+the sepia theme shared by Ramen_Builder, Noh_Masks and Pagoda: paper plates with Fig.
+labels, mono corner captions, Zen Maru Gothic and vermilion accents.
+
+Built with [MindAR](https://github.com/hiukim/mind-ar-js) 1.2.5 and
+[three.js](https://threejs.org) 0.160.0.
