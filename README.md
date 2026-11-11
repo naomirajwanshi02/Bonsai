@@ -5,6 +5,7 @@ garden opens over your camera. Choose one of eight trees, get its young nursery 
 and turn it into a bonsai in four jobs: **prune**, **wire**, **water** and **unwire**.
 Made for ages 8–14.
 
+**Play it live:** https://naomirajwanshi02.github.io/Bonsai/ (open it on your phone, then point it at the card)
 **Play locally:** `http://localhost:8125/`
 **Without the card:** `?demo=1` · **Without any camera:** `?preview=1` · **Straight to a tree:** `?preview=1&tree=juniper`
 **The card to scan:** [`target.png`](target.png)
