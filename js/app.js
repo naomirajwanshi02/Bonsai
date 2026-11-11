@@ -163,13 +163,14 @@ Stage.on({
 // growers choose it on purpose: copper for the conifers, aluminium for the broadleaf trees.
 function wireHint(W, phase){
   const metal = S.tree?.look.wire === 'copper' ? 'copper' : 'aluminium';
-  if (W.kind === 'tie') return '<b>Circle</b> your finger round the rock to tie the roots down with wire';
-  if (phase === 'trace') return `<b>Drag</b> your finger along the dotted line to coil ${metal} wire round <b>${W.name}</b>`;
-  if (phase === 'tap') return `<b>Tap</b> ${W.name} (the red dot) to coil ${metal} wire round it`;
-  if (phase === 'circle') return `<b>Circle</b> your finger round <b>${W.name}</b> to wind ${metal} wire on`;
-  if (W.guy) return `<b>Drag</b> the red dot into the ring: a guy wire to the pot will hold ${W.name} there`;
-  if (W.kind === 'trunk' && S.tree?.style === 'Cascade') return 'Now <b>drag</b> the red dot down into the ring to bend the trunk over the edge';
-  return `Now <b>drag</b> the red dot into the ring to bend ${W.name} into shape`;
+  if (W.kind === 'tie') return '<b>Circle</b> your finger round the rock: wire bands pull the loose roots tight against it';
+  if (W.method === 'trace') return `<b>Drag</b> your finger up the dotted line: ${metal} wire coils round the trunk and bends it into curves`;
+  if (W.method === 'guy') return '<b>Drag</b> the red dot into the ring: a guy wire to the pot pulls the trunk over into its slant';
+  if (W.method === 'hold') return `<b>Press and hold</b> the red button: ${metal} wire winds round the small trunk and twists it away from the big one`;
+  if (W.method === 'swing') return `<b>Drag</b> the red dot <b>sideways</b> into the ring: the branch swings out and ${metal} wire coils on`;
+  if (W.method === 'lift' && phase === 'tap') return `<b>Tap</b> the drooping branch (the red dot) to coil ${metal} wire round it`;
+  if (W.method === 'lift') return 'Now <b>drag</b> the red dot <b>up</b> into the ring to lift the branch level';
+  return `<b>Follow</b> the guide on ${W.name}`;
 }
 const UNWIRE_HINT = {
   unwind: '<b>Tap</b> the red button on a glowing wire. It unwinds off the branch',

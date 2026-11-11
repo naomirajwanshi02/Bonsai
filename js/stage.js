@@ -248,7 +248,7 @@ export function setMode(mode){
     emit('unwireTarget', R.unwire.left[0]);
   } else if (mode === 'done'){
     R.can.visible = false;
-    T.moss.visible = true;
+    T.mossUp();
     T.moss.children.forEach((m, i) => { const s = m.scale.clone(); m.scale.setScalar(0.001); tw(0.6, EASE.back, (k) => m.scale.set(s.x * k, 1, s.z * k), null, i * 0.03); });
   }
 }
@@ -292,7 +292,7 @@ function pruneSwipe(a, b){
 //   circle — circle your finger round the part to wind the wire (or tie the roots)
 //   pull   — drag the glowing tip to the ring; the part bends as you pull
 // Guy wires use "pull" with no coil: the wire runs from the tip to a hook on the pot.
-const FIRST = { trace: 'trace', pull: 'tap', circle: 'circle', 'circle+pull': 'circle', guy: 'pull' };
+const FIRST = { trace: 'trace', pull: 'tap', lift: 'tap', swing: 'pull', circle: 'circle', 'circle+pull': 'circle', guy: 'pull', hold: 'hold' };
 function nextTarget(){
   const Wi = R.wire;
   Wi.i++;
@@ -312,6 +312,11 @@ function wireDown(p){
   if (!W || Wi.busy) { R.down.ignore = true; return; }
   if (Wi.phase === 'trace') return traceDrag(p, true);
   if (Wi.phase === 'circle'){ const c = toScreen(T.centerWorld(W, v3b)); Wi.ang = Math.atan2(p.y - c.y, p.x - c.x); return; }
+  if (Wi.phase === 'hold'){
+    const c = toScreen(T.centerWorld(W, v3b));
+    if (Math.hypot(p.x - c.x, p.y - c.y) < 95){ Wi.holding = true; buzz(15); } else R.down.ignore = true;
+    return;
+  }
   if (Wi.phase === 'pull'){
     const tip = toScreen(T.tipWorld(W, T.bendOf(W), v3b));
     if (Math.hypot(p.x - tip.x, p.y - tip.y) > 80){ R.down.ignore = true; return; }
@@ -336,6 +341,7 @@ function wireMove(p){
     const prog = Math.min(1, Wi.acc / (Math.PI * 2 * turns));
     if (Math.floor(prog * 8) !== Math.floor(W.wire.progress * 8)) buzz(6);
     T.setWire(W, prog);
+    if (W.kind === 'tie') T.setBend(W, prog);
     if (prog >= 1){
       buzz(30);
       if (W.method === 'circle+pull') setPhase('pull');
@@ -354,9 +360,18 @@ function wireMove(p){
       const d = Math.hypot(p.x - s.x, p.y - s.y);
       if (d < bd){ bd = d; best = k; }
     }
-    if (best > b0){ T.setBend(W, best); settleFree(W, best); }
+    if (best > b0){ T.setBend(W, best); settleFree(W, best); if (W.method === 'swing') T.setWire(W, best); }
     if (best > 0.92) finishTarget(W, true);
   }
+}
+// press and hold: the wire winds on while the finger stays down, and the part twists with it
+function updateHold(dt){
+  const Wi = R.wire, T = R.tree, W = curW();
+  if (R.mode !== 'wire' || !W || Wi.busy || Wi.phase !== 'hold' || !Wi.holding) return;
+  const prog = Math.min(1, W.wire.progress + dt * 0.34);
+  if (Math.floor(prog * 10) !== Math.floor(W.wire.progress * 10)) buzz(8);
+  T.setWire(W, prog); T.setBend(W, prog); settleFree(W, prog);
+  if (prog >= 1){ Wi.holding = false; finishTarget(W, true); }
 }
 function wireTap(p){
   const Wi = R.wire, T = R.tree, W = curW();
@@ -382,6 +397,8 @@ function traceDrag(p, start){
   if (hit.d < 70 && hit.s > prog && hit.s - prog < 0.3){
     T.setWire(W, hit.s);
     if (Math.floor(hit.s * 12) !== Math.floor(prog * 12)) buzz(6);
+    // wiring the pine's trunk: it curves into its S-shape as the coil climbs
+    if (W.kind === 'trunk'){ T.setBend(W, hit.s); settleFree(W, hit.s); }
   }
   if (W.wire.progress > 0.94) finishTarget(W, true);
 }
@@ -597,6 +614,7 @@ function onUp(ev){
   if (R.mode === 'unwire' && tap) unwireTap(p);
   if (R.mode === 'wire' && tap) wireTap(p);
   if (R.mode === 'prune' && tap) pruneSwipe({ x: p.x, y: p.y - 30 }, { x: p.x, y: p.y + 30 });
+  if (R.wire) R.wire.holding = false;
   if (R.mode === 'water' && R.water){ R.water.grab = false; if (R.water.k < 1) placeCanHome(false); }
   R.down = null;
 }
@@ -726,6 +744,14 @@ function drawGuide(g, now, W, phase){
     const ax = c.x + Math.cos(a) * rad, ay = c.y + Math.sin(a) * rad;
     dot(g, ax, ay, pulse);
     arrowHead(g, c.x + Math.cos(a + 0.35) * rad, c.y + Math.sin(a + 0.35) * rad, a + 0.35 + Math.PI / 2);
+  } else if (phase === 'hold'){
+    // a big pulsing button to press and hold; the ring fills as the wire winds on
+    const c = toScreen(T.centerWorld(W, v3b)), prog = W.wire.progress;
+    dashedCircle(g, c.x, c.y, 46);
+    if (prog > 0){ g.strokeStyle = '#b5452f'; g.lineWidth = 7; g.beginPath(); g.arc(c.x, c.y, 46, -Math.PI / 2, -Math.PI / 2 + prog * 6.283); g.stroke(); }
+    const big = R.wire.holding ? 0.6 : pulse;
+    g.fillStyle = `rgba(181,69,47,${0.25 + 0.25 * big})`; g.beginPath(); g.arc(c.x, c.y, 26 + big * 8, 0, 6.283); g.fill();
+    g.fillStyle = '#b5452f'; g.strokeStyle = '#fff8ec'; g.lineWidth = 3; g.beginPath(); g.arc(c.x, c.y, 16, 0, 6.283); g.fill(); g.stroke();
   } else if (phase === 'pull'){
     // drag the tip (red dot) to the ring; a guy wire also shows its hook on the pot
     const k = T.bendOf(W);
@@ -778,6 +804,7 @@ function frame(){
   updateWater(dt);
   updateDrops(dt);
   updateBits(dt);
+  updateHold(dt);
   R.light?.(R.video, now, dt);
   R.renderer.render(R.scene, R.camera);
   placeMarks();

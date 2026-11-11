@@ -26,6 +26,9 @@ window.AP = (() => {
         const ctr = scr(T.centerWorld(W)), pts = [];
         for (let i = 0; i <= 80; i++){ const a = (i / 80) * Math.PI * 2 * 3.3; pts.push({ x: ctr.x + Math.cos(a) * 60, y: ctr.y + Math.sin(a) * 60 }); }
         drag(pts);
+      } else if (ph === 'hold'){
+        const q = scr(T.centerWorld(W));
+        ev('pointerdown', q); run(3.6); ev('pointerup', q);
       } else if (ph === 'pull'){
         const pts = [];
         for (let i = 0; i <= 20; i++){ const k = T.bendOf(W) + (1 - T.bendOf(W)) * (i / 20); pts.push(scr(T.tipWorld(W, k))); }

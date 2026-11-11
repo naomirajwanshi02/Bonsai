@@ -182,6 +182,24 @@ export function foliageTexture(kind, c1, c2){
       }
     };
     for (let i = 0; i < 7; i++) sprig(128 + (r() - 0.5) * 24, 250, -Math.PI / 2 + (r() - 0.5) * 1.7, 130 + r() * 80, 0);
+  } else if (kind === 'yew'){
+    // yew shoots: soft, flat needles set in two neat rows along each green shoot
+    for (let s = 0; s < 6; s++){
+      let x = 128 + (r() - 0.5) * 30, y = 252, a = -Math.PI / 2 + (r() - 0.5) * 1.5;
+      const steps = 26 + (r() * 12 | 0);
+      for (let i = 0; i < steps; i++){
+        const nx = x + Math.cos(a) * 6, ny = y + Math.sin(a) * 6;
+        g.strokeStyle = '#4c6a2c'; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(x, y); g.lineTo(nx, ny); g.stroke();
+        const t = i / steps;
+        for (const sd of [-1, 1]){
+          const la = a + sd * (1.25 + r() * 0.2), ll = 15 * (1 - t * 0.5) + r() * 3;
+          g.strokeStyle = col(0.1 + r() * 0.4 + t * 0.4); g.lineWidth = 3.4 - t * 1.2;
+          g.beginPath(); g.moveTo(nx, ny); g.lineTo(nx + Math.cos(la) * ll, ny + Math.sin(la) * ll); g.stroke();
+        }
+        x = nx; y = ny; a += (r() - 0.5) * 0.12;
+      }
+    }
   } else if (kind === 'blossom'){
     // ume blossom: round five-petal flowers and buds, a few on each card
     const flower = (x, y, R) => {
@@ -288,5 +306,31 @@ export function mossTexture(){
   }
   const tex = toTex(c);
   cache.set('moss', tex);
+  return tex;
+}
+
+// A thick, cushiony carpet of moss for the finished bonsai's soil (tileable).
+export function mossCarpetTexture(){
+  if (cache.has('mossCarpet')) return cache.get('mossCarpet');
+  const S = 256, r = rng(321);
+  const [c, g] = canvas(S, S);
+  g.fillStyle = '#365a1e'; g.fillRect(0, 0, S, S);
+  const tones = ['#3f6a22', '#4c7a28', '#2f5018', '#5f8a30', '#44702a', '#6e9a3a'];
+  for (let i = 0; i < 2600; i++){
+    const x = r() * S, y = r() * S, R = 1 + r() * 3.4;
+    g.fillStyle = tones[(r() * tones.length) | 0];
+    for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]){ g.beginPath(); g.arc(x + dx, y + dy, R, 0, 6.283); g.fill(); }
+  }
+  // darker hollows between the cushions
+  for (let i = 0; i < 70; i++){
+    const x = r() * S, y = r() * S, R = 6 + r() * 14;
+    for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]){
+      const grd = g.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, R);
+      grd.addColorStop(0, 'rgba(30,45,15,.35)'); grd.addColorStop(1, 'rgba(30,45,15,0)');
+      g.fillStyle = grd; g.beginPath(); g.arc(x + dx, y + dy, R, 0, 6.283); g.fill();
+    }
+  }
+  const tex = toTex(c, { repeat: true });
+  cache.set('mossCarpet', tex);
   return tex;
 }

@@ -25,25 +25,22 @@ sources at the end.
 | Jin (dead branches) and shari (stripped trunk) are made on conifers to show age, and look false on deciduous trees | [Wikipedia: Deadwood bonsai techniques](https://en.wikipedia.org/wiki/Deadwood_bonsai_techniques), [Bonsai Empire: Deadwood](https://bonsaiempire.com/basics/styling/deadwood) |
 | Guy wires to the pot and binding young roots to the rock are standard ways to shape trunks and root-over-rock trees | [Bonsai Empire: Wiring](https://bonsaiempire.com/basics/styling/wiring), [Swindon Bonsai](https://swindon-bonsai.co.uk/2012/05/20/trident-maple-over-rock/) |
 
-## The eight trees
+## The six trees
 
 | Tree | Claim | Source |
 |---|---|---|
 | Japanese Black Pine, *Pinus thunbergii* | Grows on Japan's coasts and tolerates salt wind; needles in pairs; old bark dark, rough and fissured | [Gymnosperm Database](https://conifers.org/pi/Pinus_thunbergii.php), [American Conifer Society](https://conifersociety.org/conifers/pinus-thunbergii/) |
 | Informal upright | Curved trunk, apex above the base | [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles) |
-| Chinese Juniper, *Juniperus chinensis* | Scale-like leaves; grows on cliffs and slopes; deadwood often used on junipers | [Bonsai Empire: Deadwood](https://bonsaiempire.com/basics/styling/deadwood) |
-| Cascade | Tip falls below the bottom of the pot; grown in a tall pot | [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles), [Bonsai Empire: Styles](https://www.bonsaiempire.com/origin/bonsai-styles) |
-| Japanese Cedar, *Cryptomeria japonica* | Belongs to the cypress family, not a true cedar | [Gymnosperm Database: Cryptomeria](https://www.conifers.org/cu/cr/index.htm) |
-| | A wild cedar on Yakushima (Jōmon Sugi) is at least 2,000 years old (radiocarbon minimum about 2,170 years) | [Wikipedia: Jōmon Sugi](https://en.wikipedia.org/wiki/J%C5%8Dmon_Sugi), [nippon.com](https://www.nippon.com/en/views/b05303/) |
-| Formal upright | Straight trunk, triangle of branches | [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles), [Brooklyn Botanic Garden](https://www.bbg.org/article/bonsai_styles) |
+| Chinese Juniper, *Juniperus chinensis* | Needle-like and scale-like leaves; grows on cliffs and slopes; deadwood often used on junipers | [Bonsai Empire: Deadwood](https://bonsaiempire.com/basics/styling/deadwood) |
+| Slanting | Trunk leaves the soil at an angle, apex to one side of the base | [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles) |
+| | Deadwood is treated with lime sulfur, which bleaches, sterilises and preserves it | [USDA National Arboretum (archived)](https://webarchive.library.unt.edu/eot2008/20090304232047/http://www.usna.usda.gov/Gardens/faqs/BonsaiLimeSulphurJinShari.html), [Wikipedia: Deadwood bonsai techniques](https://en.wikipedia.org/wiki/Deadwood_bonsai_techniques) |
+| Japanese Yew, *Taxus cuspidata* | Native to Japan, Korea and north-east China (Manchuria); slow-growing; used for bonsai | [Bernheim Arboretum](https://bcarboretum.org/plants/genus/Taxus/species/cuspidata), [UConn Plant Database](https://plantdatabase.uconn.edu/detail.php?pid=497) |
+| | All parts of a yew are poisonous except the fleshy red aril round the seed | [UConn Plant Database](https://plantdatabase.uconn.edu/detail.php?pid=497) |
+| Driftwood | Trunk largely stripped of bark, with at least one live strip still feeding the tree | [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles) |
 | Japanese Maple, *Acer palmatum* | Hand-shaped leaves with red and orange autumn colour; "palmatum" means shaped like a palm (hand) | [Wikipedia: Acer palmatum](https://en.wikipedia.org/wiki/Acer_palmatum) |
-| Slanting | Trunk leaves the soil at an angle | [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles) |
-| Japanese Zelkova, *Zelkova serrata* | Elm family; "serrata" means saw-toothed (leaf edges) | [Wikipedia: Zelkova serrata](https://en.wikipedia.org/wiki/Zelkova_serrata) |
-| Broom | Fan of fine branches in a round crown, classic on zelkova and elm | [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles), [Bonsai Empire: Styles](https://www.bonsaiempire.com/origin/bonsai-styles) |
+| Broom | Fan of fine branches in a round crown; Japanese maple (especially 'Kiyohime') suits it | [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles), [Swindon Bonsai: Kiyohime](https://swindon-bonsai.co.uk/2012/04/13/acer-palmatum-kiyohime), [Bonsai Empire: Styles](https://www.bonsaiempire.com/origin/bonsai-styles) |
 | Trident Maple, *Acer buergerianum* | Native to China and Japan; three-lobed leaves | [Wikipedia: Acer buergerianum](https://en.wikipedia.org/wiki/Acer_buergerianum) |
 | | Strong, fast-thickening roots make it a favourite for root over rock | [Swindon Bonsai](https://swindon-bonsai.co.uk/2012/05/20/trident-maple-over-rock/), [Bonsai Tonight](https://bonsaitonight.com/2021/10/29/fall-cutback-on-a-root-over-rock-trident-maple/) |
-| Scots Pine, *Pinus sylvestris* | Native across Europe and Asia; thin orange bark on the upper trunk | [Utah State Extension](https://extension.usu.edu/treebrowser/catalog/pine-scotch-scots.php), [Paul Kirtley](https://paulkirtley.co.uk/2026/how-to-identify-scots-pine/) |
-| Literati | Named after Chinese scholar-artists whose paintings of slender, windswept trees inspired it; few branches near the top | [Bonsai Learning Center: Literati](https://bonsailearningcenter.com/literati-bonsai/), [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles) |
 | Japanese Apricot, *Prunus mume* | Fragrant white, pink or red blossoms in mid-winter, before the leaves | [Gardenia.net](https://www.gardenia.net/plant/prunus-mume-plum-blossom), [Oregon State](https://landscapeplants.oregonstate.edu/plants/prunus-mume) |
 | | Also called Chinese plum, but in the apricot section of *Prunus* | [Wikipedia: Prunus mume](https://en.wikipedia.org/wiki/Prunus_mume) |
 | Twin trunk | Two trunks from one root system | [Wikipedia: Bonsai styles](https://en.wikipedia.org/wiki/Bonsai_styles) |
@@ -54,3 +51,4 @@ sources at the end.
 - [Anatomy](https://github.com/wheresryan22/anatomy) (MIT), sepia theme as in Noh_Masks
 - [Zen Maru Gothic](https://fonts.google.com/specimen/Zen+Maru+Gothic) (SIL OFL)
 - The card painting (`assets/illustration.png`) was supplied for this project.
+- Three trees are modelled on reference renders supplied for this project (a black pine, a deadwood juniper and a driftwood yew); the 3D trees are built in code, not copied from those files.

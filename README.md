@@ -1,7 +1,7 @@
 # 🌳 Bonsai Garden: a scan-to-play WebAR bonsai game
 
 Point your phone at the printed **Bonsai card**. When the card is recognised the bonsai
-garden opens over your camera. Choose one of eight trees, get its young nursery plant,
+garden opens over your camera. Choose one of six trees, get its young nursery plant,
 and turn it into a bonsai in four jobs: **prune**, **wire**, **water** and **unwire**.
 Made for ages 8–14.
 
@@ -17,7 +17,7 @@ Made for ages 8–14.
    tracking then stops, and the camera video stays on as the backdrop.
 3. **Welcome.** What bonsai is, in two sentences.
 4. **How to play.** The four jobs, with their icons.
-5. **Choose a tree.** Eight cards, each showing the bonsai that tree becomes.
+5. **Choose a tree.** Six cards, each showing the bonsai that tree becomes.
 6. **The workbench.** The young plant pops up over the camera. The step bar at the bottom
    shows the four jobs:
    - **Prune.** Red scissors mark the branches a grower would remove. Tap them to cut.
@@ -42,27 +42,27 @@ the welcome screen).
 
 | Tree | Wiring | Taking it off |
 |---|---|---|
-| Japanese Black Pine | Drag along the dotted line on each branch; the coil follows your finger and the branch bends down | Tap each coil and it spins off |
-| Chinese Juniper | Circle your finger round the trunk to wind the wire on, then pull its tip down over the edge of the tall pot | Snip with the cutters, a piece at a time |
-| Japanese Cedar | Tap a branch to coil the wire on, then pull its tip down to level | Tap each coil and it spins off |
-| Japanese Maple | A guy wire from the trunk to a hook on the pot pulls the trunk into its slant; branches are traced | Untie the hook, then snip the branch wire |
-| Japanese Zelkova | Guy wires from three branches to hooks on the pot spread the broom | Untie each hook |
-| Trident Maple | Circle the rock to tie the roots down with three bands, then tap and pull the branches | Cut each band, then unwind the branches |
-| Scots Pine | Circle the trunk to wind the wire on and it twists into its literati curve; tap and pull the top branches | Snip with the cutters |
-| Japanese Apricot | A guy wire pulls the small trunk away from the big one; branches are traced | Untie the hook, then unwind the branches |
+| Japanese Black Pine | **Drag** up the dotted line on the trunk: copper wire coils on and the straight young trunk bends into its S-curves as it goes | Snip the wire off with cutters, a piece at a time |
+| Chinese Juniper | **Drag** the trunk's tip to the ring: a guy wire to a hook on the pot pulls the upright young trunk over into its slant | Untie the guy wire at the hook |
+| Japanese Yew | **Tap** a drooping branch to coil wire on, then **drag** it **up** into place: the branches are lifted level into layered pads | Unwind each coil |
+| Japanese Maple | **Drag** each bunched-up branch **sideways**: it swings out to open the round broom crown, and the wire coils on as it moves | Snip the wire off with cutters |
+| Trident Maple | **Circle** the rock: three wire bands go round it and pull the loose young roots tight against the stone | Cut the bands |
+| Japanese Apricot | **Press and hold** the small trunk: wire winds on while you hold, and the trunk twists away from the big one | Unwind the coil |
 
-## The eight trees
+No tree's branches simply drop: each shaping moves the tree in its own way (curving, slanting,
+lifting, swinging out, gripping the rock, twisting apart). Branches that are not wired stay
+exactly where they grow.
 
-| # | Tree | Latin name | Style |
-|---|---|---|---|
-| 01 | Japanese Black Pine | *Pinus thunbergii* | Informal Upright |
-| 02 | Chinese Juniper | *Juniperus chinensis* | Cascade |
-| 03 | Japanese Cedar | *Cryptomeria japonica* | Formal Upright |
-| 04 | Japanese Maple | *Acer palmatum* | Slanting |
-| 05 | Japanese Zelkova | *Zelkova serrata* | Broom |
-| 06 | Trident Maple | *Acer buergerianum* | Root over Rock |
-| 07 | Scots Pine | *Pinus sylvestris* | Literati |
-| 08 | Japanese Apricot | *Prunus mume* | Twin Trunk |
+## The six trees
+
+| # | Tree | Latin name | Style | Look |
+|---|---|---|---|---|
+| 01 | Japanese Black Pine | *Pinus thunbergii* | Informal Upright | modelled on the black pine reference: a long branch sweeping left, needle tufts, red lipped pot |
+| 02 | Chinese Juniper | *Juniperus chinensis* | Slanting | modelled on the juniper reference: a writhing trunk, white shari and jin, feathery layers, a flared round pot and moss mound |
+| 03 | Japanese Yew | *Taxus cuspidata* | Driftwood | modelled on the yew reference: a massive bleached trunk with a thin live vein, layered pads, a flat slab |
+| 04 | Japanese Maple | *Acer palmatum* | Broom | |
+| 05 | Trident Maple | *Acer buergerianum* | Root over Rock | |
+| 06 | Japanese Apricot | *Prunus mume* | Twin Trunk | |
 
 All names are in English; the app has no Japanese script. Every fact is sourced in
 [SOURCES.md](SOURCES.md). The design rules the trees follow are summarised in
@@ -115,7 +115,7 @@ research, not the painting. To rebuild it, run the server and open
 | `js/stage.js` | Camera backdrop, card scan, 3D stage, gestures, watering can, photo, card thumbnails |
 | `js/tree.js` | The procedural bonsai (raw plant → bonsai) |
 | `js/textures.js` | Canvas-painted bark, foliage, soil, rock and moss |
-| `js/data.js` | The eight trees and the step texts |
+| `js/data.js` | The six trees and the step texts |
 | `js/look.js` | Lighting and room light |
 | `tools/serve.ps1` | Tiny local server (no Node or Python needed) |
 | `tools/make-target.html` | Builds and compiles the card |

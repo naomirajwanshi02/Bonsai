@@ -1,11 +1,18 @@
-// The eight trees. Each one is a real species grown as bonsai, paired with a
-// classic bonsai style. Words are written for readers aged 8–14: one line about
-// the tree, one line about the style and one true fact. Every claim is sourced in
-// SOURCES.md. English names only (no Japanese script or style words).
+// The six trees. Each one is a real species grown as bonsai, paired with a
+// classic bonsai style. Three are modelled on the reference renders supplied for
+// this project (the black pine, the deadwood juniper and the driftwood yew).
+// Words are written for readers aged 8–14: one line about the tree, one about the
+// style and one true fact, each sourced in SOURCES.md. English names only.
 //
 // `look` drives the 3D build in js/tree.js: the style generator, foliage kind,
-// colours and pot. Wire is copper on the conifers and aluminium on the
-// broadleaf trees, as bonsai growers do.
+// colours and pot. `wiring` is how this tree is shaped (every tree differently):
+//   trace — drag up the trunk: the wire coils on and the trunk curves as it goes
+//   guy   — drag the trunk's tip to a hook: a guy wire pulls it into its slant
+//   lift  — tap a drooping branch to wire it, then drag it up into place
+//   swing — drag a branch sideways: it swings out to open the crown
+//   ties  — circle the rock: wire bands pull the roots tight against it
+//   hold  — press and hold the small trunk: it twists away from the big one
+// Copper wire goes on the conifers and aluminium on the broadleaf trees.
 
 export const TREES = [
   {
@@ -13,75 +20,59 @@ export const TREES = [
     blurb: 'A tough pine that grows wild on Japan’s rocky coasts, standing up to salty sea wind.',
     styleLine: 'Informal upright: the trunk curves from side to side, but its top sits above the roots.',
     fact: 'Its long, stiff needles grow in pairs, and as the tree gets old its dark bark becomes rough and deeply cracked.',
-    look: { style: 'informal', foliage: 'pine', leaf: '#3f5a2c', leaf2: '#7f9a4e', bark: '#6b5444', bark2: '#3d2e24', barkKind: 'plates',
-      pot: { shape: 'rect', w: 1.55, d: 0.98, h: 0.27, color: '#7a6a5d', glaze: false }, wire: 'copper', seed: 11,
-      wiring: { branches: "trace", coilOff: "unwind" },
-      deadwood: { jin: [{ u: 0.8, az: 125, el: 38, len: 0.26 }] } },
+    look: { style: 'informal', foliage: 'pine', leaf: '#2f5a24', leaf2: '#6f9a44', bark: '#5e4a3c', bark2: '#3d2e24', barkKind: 'plates',
+      pot: { shape: 'rect', w: 1.5, d: 0.95, h: 0.3, color: '#7e3f2a', glaze: false, lip: true }, wire: 'copper', seed: 11,
+      wiring: { trunk: 'trace', coilOff: 'snip' } },
   },
   {
-    id: 'juniper', name: 'Chinese Juniper', latin: 'Juniperus chinensis', style: 'Cascade',
-    blurb: 'An evergreen with tiny scale-like leaves that clings to cliffs and steep mountain slopes.',
-    styleLine: 'Cascade: the trunk tumbles over the edge and its tip hangs below the bottom of the pot, like a tree on a cliff.',
-    fact: 'A cascade tree needs a tall pot, so its long hanging trunk does not touch the table.',
-    look: { style: 'cascade', foliage: 'juniper', leaf: '#3e6640', leaf2: '#86a85e', bark: '#8a5a3c', bark2: '#4a2e1e', barkKind: 'strings',
-      pot: { shape: 'tall', w: 0.62, d: 0.62, h: 0.9, color: '#5e4a3c', glaze: false }, wire: 'copper', seed: 23,
-      wiring: { trunk: "circle+pull", coilOff: "snip" },
-      deadwood: { shari: { from: 0.02, to: 0.78, width: 0.3, angle: 15, twist: 0.9 }, jin: [{ u: 0.3, az: 60, el: 30, len: 0.36 }, { u: 0.55, az: 160, el: 10, len: 0.3 }] } },
+    id: 'juniper', name: 'Chinese Juniper', latin: 'Juniperus chinensis', style: 'Slanting',
+    blurb: 'An evergreen with tiny needle-like and scale-like leaves that clings to cliffs and steep mountain slopes.',
+    styleLine: 'Slanting: the trunk leaves the soil at an angle, and its top sits off to one side of the roots.',
+    fact: 'Its bare white deadwood is painted with lime sulfur, which bleaches it and protects it from rot.',
+    look: { style: 'slant', foliage: 'juniper', leaf: '#2c5a2a', leaf2: '#6a9a48', bark: '#7a3e26', bark2: '#4a2e1e', barkKind: 'strings',
+      pot: { shape: 'bowl', w: 1.0, d: 1.0, h: 0.6, color: '#5b4433', glaze: false }, wire: 'copper', seed: 23,
+      wiring: { trunk: 'guy' },
+      deadwood: { shari: { from: 0.03, to: 0.85, width: 0.24, angle: 20, twist: 1.1 },
+        jin: [{ u: 0.22, az: -10, el: -12, len: 0.6 }, { u: 0.36, az: 20, el: 4, len: 0.5 }, { u: 0.5, az: -30, el: 18, len: 0.32 }, { u: 0.08, az: 30, el: 30, len: 0.22 }] } },
   },
   {
-    id: 'cedar', name: 'Japanese Cedar', latin: 'Cryptomeria japonica', style: 'Formal Upright',
-    blurb: 'A tall, straight evergreen. Despite its name it is not a true cedar: it belongs to the cypress family.',
-    styleLine: 'Formal upright: a dead-straight trunk and a neat triangle of branches, getting shorter toward the top.',
-    fact: 'A wild Japanese cedar on Yakushima island is thought to be more than 2,000 years old.',
-    look: { style: 'formal', foliage: 'cedar', leaf: '#3b5e35', leaf2: '#7c9a52', bark: '#8b5e44', bark2: '#4e3326', barkKind: 'strings',
-      pot: { shape: 'oval', w: 1.5, d: 0.92, h: 0.22, color: '#7d6555', glaze: false }, wire: 'copper', seed: 37,
-      wiring: { branches: "pull", coilOff: "unwind" } },
+    id: 'yew', name: 'Japanese Yew', latin: 'Taxus cuspidata', style: 'Driftwood',
+    blurb: 'A slow-growing evergreen with soft, flat, dark green needles, from the cool forests of Japan, Korea and north-east China.',
+    styleLine: 'Driftwood: most of the trunk is bare, bleached wood, and one living strip of bark winds up it to feed the tree.',
+    fact: 'Every part of a yew is poisonous except the soft red cup around its seed, so look, but never nibble!',
+    look: { style: 'driftwood', foliage: 'yew', leaf: '#2a4a26', leaf2: '#5f8a3c', bark: '#3e2f27', bark2: '#2f2520', barkKind: 'smooth',
+      pot: { shape: 'slab', w: 1.7, d: 1.05, h: 0.09, color: '#48484c', glaze: false }, wire: 'copper', seed: 31,
+      wiring: { branches: 'lift', coilOff: 'unwind' },
+      deadwood: { shari: { from: 0.0, to: 0.88, width: 0.93, angle: 0, twist: 0.12 },
+        jin: [{ u: 0.06, az: 10, el: 8, len: 0.55, thick: 2.2 }, { u: 0.5, az: 200, el: 25, len: 0.25 }] } },
   },
   {
-    id: 'maple', name: 'Japanese Maple', latin: 'Acer palmatum', style: 'Slanting',
+    id: 'maple', name: 'Japanese Maple', latin: 'Acer palmatum', style: 'Broom',
     blurb: 'Famous for leaves shaped like a little hand, which turn fiery red and orange in autumn.',
-    styleLine: 'Slanting: the whole trunk leans to one side, as if the tree grew toward the light.',
-    fact: 'Its Latin name “palmatum” means “shaped like the palm of a hand”.',
-    look: { style: 'slanting', foliage: 'palmate', leaf: '#b8402a', leaf2: '#e58a3a', bark: '#7c7462', bark2: '#4a4438', barkKind: 'smooth',
-      pot: { shape: 'oval', w: 1.35, d: 0.86, h: 0.22, color: '#3f5f7a', glaze: true }, wire: 'aluminium', seed: 41,
-      wiring: { trunk: "guy", branches: "trace", coilOff: "snip" } },
-  },
-  {
-    id: 'zelkova', name: 'Japanese Zelkova', latin: 'Zelkova serrata', style: 'Broom',
-    blurb: 'A cousin of the elm, with a straight trunk and lots of very fine twigs.',
     styleLine: 'Broom: the branches fan out from one point into a round crown, like an upside-down broom.',
-    fact: 'Its Latin name “serrata” means “saw-toothed”, after the jagged edges of its leaves.',
-    look: { style: 'broom', foliage: 'zelkova', leaf: '#4f7a34', leaf2: '#9cbf5a', bark: '#8a8476', bark2: '#59544a', barkKind: 'smooth',
-      pot: { shape: 'oval', w: 1.6, d: 1.0, h: 0.16, color: '#d9ccb2', glaze: true }, wire: 'aluminium', seed: 53,
-      wiring: { branches: "guy" } },
+    fact: 'Its Latin name “palmatum” means “shaped like the palm of a hand”.',
+    look: { style: 'broom', foliage: 'palmate', leaf: '#b33a24', leaf2: '#e5863a', bark: '#7c7462', bark2: '#4a4438', barkKind: 'smooth',
+      pot: { shape: 'oval', w: 1.55, d: 0.98, h: 0.17, color: '#d9ccb2', glaze: true }, wire: 'aluminium', seed: 41,
+      wiring: { branches: 'swing', coilOff: 'snip' } },
   },
   {
     id: 'trident', name: 'Trident Maple', latin: 'Acer buergerianum', style: 'Root over Rock',
     blurb: 'A maple from China and Japan. Each leaf has three points, which is how it got its name.',
     styleLine: 'Root over rock: the roots grip a stone and climb down over it into the soil.',
     fact: 'Trident maple roots are strong and thicken fast, which makes it a favourite tree for root over rock.',
-    look: { style: 'rock', foliage: 'trident', leaf: '#5b8436', leaf2: '#b5c763', bark: '#9a7f66', bark2: '#5e4a3a', barkKind: 'flakes',
+    look: { style: 'rock', foliage: 'trident', leaf: '#4f7c2e', leaf2: '#a9c25c', bark: '#9a7f66', bark2: '#5e4a3a', barkKind: 'flakes',
       pot: { shape: 'rect', w: 1.42, d: 0.96, h: 0.2, color: '#5f8a7c', glaze: true }, wire: 'aluminium', seed: 67,
-      wiring: { ties: true, branches: "pull", coilOff: "unwind" } },
-  },
-  {
-    id: 'scots-pine', name: 'Scots Pine', latin: 'Pinus sylvestris', style: 'Literati',
-    blurb: 'A pine from Europe and Asia. High up its trunk the bark turns a warm orange.',
-    styleLine: 'Literati: a tall, thin, twisting trunk with only a few branches near the top.',
-    fact: 'The literati style is named after Chinese scholars who painted and wrote poems about lonely, windswept trees.',
-    look: { style: 'literati', foliage: 'scots', leaf: '#4c6b4a', leaf2: '#93ad7c', bark: '#6e5646', bark2: '#5e3a26', barkKind: 'plates',
-      pot: { shape: 'round', w: 0.62, d: 0.62, h: 0.2, color: '#8a6c55', glaze: false }, wire: 'copper', seed: 79,
-      wiring: { trunk: "circle", branches: "pull", coilOff: "snip" },
-      deadwood: { shari: { from: 0.04, to: 0.55, width: 0.22, angle: -20, twist: 0.6 }, jin: [{ u: 0.68, az: 25, el: 28, len: 0.3 }, { u: 0.45, az: 200, el: 20, len: 0.22 }] } },
+      wiring: { ties: true } },
   },
   {
     id: 'apricot', name: 'Japanese Apricot', latin: 'Prunus mume', style: 'Twin Trunk',
     blurb: 'Its sweet-smelling blossoms, white, pink or red, open in the middle of winter, before any leaves appear.',
     styleLine: 'Twin trunk: two trunks, one big and one smaller, grow from the same roots.',
     fact: 'In English it is also called the Chinese plum, but it is really a close cousin of the apricot.',
-    look: { style: 'twin', foliage: 'blossom', leaf: '#e58fa6', leaf2: '#fbd6df', bark: '#5d4a40', bark2: '#2f2520', barkKind: 'plates',
+    look: { style: 'twin', foliage: 'blossom', leaf: '#e58fa6', leaf2: '#fbd6df', bark: '#4d3c33', bark2: '#2f2520', barkKind: 'plates',
       pot: { shape: 'round', w: 1.05, d: 1.05, h: 0.3, color: '#33475c', glaze: true }, wire: 'aluminium', seed: 97,
-      wiring: { trunk: "guy", trunkIndex: 1, branches: "trace", coilOff: "unwind" } },
+      wiring: { trunk: 'hold', trunkIndex: 1, coilOff: 'unwind' },
+      deadwood: {} },
   },
 ];
 
